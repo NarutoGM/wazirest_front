@@ -56,13 +56,15 @@ export const authOptions: AuthOptions = {
               Authorization: `Bearer ${process.env.PUBLIC_BACKEND_READ_TOKEN}`, // Necesitas un token de admin aquí
             },
           });
-    
+          
           const users = await response.json();
     
           if (users && users.length > 0) {
             const existingUser = users[0];
-    
-            token.jwt = account.access_token; // o algún jwt válido si tienes manera
+            const callbackRes = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/auth/google/callback?access_token=${account.access_token}`);
+            const data = await callbackRes.json();
+
+            token.jwt = data.jwt; // o algún jwt válido si tienes manera
             token.id = existingUser.id;
             token.username = existingUser.username;
             token.email = existingUser.email;

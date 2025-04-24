@@ -15,7 +15,8 @@ interface WhatsAppSession {
   documentId: string;
   user: string;
   webhook_url: string | null;
-  is_connected: boolean;
+  is_active: boolean;
+  state: string;
   name?: string; // Add name
   profilePicUrl?: string | null; // Add profile picture URL
 }
@@ -65,7 +66,9 @@ function DashboardContent() {
         documentId: item.documentId,
         user: item.users[0]?.id || typedSession?.id,
         webhook_url: item.webhook_url || null,
-        is_connected: item.is_connected || false,
+        state: item.state,
+        is_active: item.is_active,
+
       }));
 
       setSessions(fetchedSessions);
@@ -82,7 +85,7 @@ function DashboardContent() {
 
 
       fetchedSessions.forEach((session) => {
-        if (session.is_connected) {
+        if (session.state == "Connected") {
           fetchProfileData(session.documentId);
         }
       });
@@ -98,7 +101,9 @@ function DashboardContent() {
   };
 
   const fetchQrsForDisconnectedSessions = async () => {
-    const disconnectedSessions = sessions.filter((session) => !session.is_connected);
+    const disconnectedSessions = sessions.filter((session) => (session.state === 'Disconnected' ) && session.is_active);
+
+
     const initialLoadingQrs = disconnectedSessions.reduce(
       (acc, session) => ({ ...acc, [session.documentId]: true }),
       {}
@@ -132,7 +137,8 @@ function DashboardContent() {
         data: {
           users: typedSession?.id,
           webhook_url: null,
-          is_connected: false,
+          is_active: true,
+          state: "Disconnected",
         },
       };
       await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances`, postData, {
@@ -285,17 +291,20 @@ function DashboardContent() {
                         </div>
                       )}
                       <h3 className="text-xl font-semibold text-white">
-                        {profiles[session.documentId]?.name || 'Instancia'} 
+                        {profiles[session.documentId]?.name || 'Instancia'}
                       </h3>
                     </div>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${session.is_connected
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                        }`}
+                        className={`px-2 py-1 text-xs font-medium rounded-full ${{
+                            Initializing: 'bg-yellow-100 text-yellow-800',
+                            Connected: 'bg-green-100 text-green-800',
+                            Failure: 'bg-orange-100 text-orange-800',
+                            Disconnected: 'bg-red-100 text-red-800'
+                          }[session.state] || 'bg-gray-100 text-gray-800'
+                          }`}
                       >
-                        {session.is_connected ? 'Conectada' : 'Desconectada'}
+                        {session.state}
                       </span>
                       <button
                         onClick={() => deleteInstance(session.documentId)}
@@ -336,7 +345,7 @@ function DashboardContent() {
                         </button>
                       </div>
                     </div>
-                    {!session.is_connected && (
+                    {session.state  != "Connected" && (
                       <div>
                         <label className="text-zinc-400 font-medium block mb-1">Escanea este QR:</label>
                         {loadingQrs[session.documentId] ? (
