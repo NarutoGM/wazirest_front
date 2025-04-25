@@ -1,213 +1,204 @@
 'use client';
-import Image from 'next/image';
-import fondo_transparent from '../../public/logo/wazilrest_white.png'
-import wazilrest_logo from '../../public/logo/wazilrest_logo.png'
-
-import { SessionProvider, useSession, signOut } from 'next-auth/react';
+import { SessionProvider, useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { ReactNode } from 'react';
-import Breadcrumb from '../components/Breadcrumb';
-
-import "../../src/app/globals.css";
+import Sidebard from '../components/dashboard/index';
+import { Toaster } from 'sonner';
+import { Line } from 'react-chartjs-2';
 import {
-  HomeIcon,
-  ServerIcon,
-  UserIcon,
-  InboxIcon,
-  LinkIcon,
-  WrenchScrewdriverIcon,
-  DocumentTextIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ArrowLeftOnRectangleIcon
-} from '@heroicons/react/24/outline';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import ChartDataLabels from 'chartjs-plugin-datalabels'; // Import the plugin
 
-function SidebarLayout({ children }: { children: React.ReactNode }) {
+// Register Chart.js components and the data labels plugin
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ChartDataLabels // Register the plugin
+);
+
+interface CustomSession {
+  id?: string;
+  jwt?: string;
+  firstName?: string;
+}
+
+interface WhatsAppSession {
+  id: number;
+  documentId: string;
+  user: string;
+  webhook_url: string | null;
+  is_active: boolean;
+  state: string;
+  historycal_data: {
+    date: string;
+    message_sent: number;
+    api_message_sent: number;
+    message_received: number;
+  }[];
+  name?: string;
+  profilePicUrl?: string | null;
+}
+
+function DashboardContent() {
+  const { data: session, status } = useSession();
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const typedSession = session as CustomSession | null;
   const router = useRouter();
-  const { status } = useSession();
-  const email = useSession().data?.user?.email;
-  const username = useSession().data?.username;
-  const photourl = useSession().data?.user?.image;
-
-  console.log('useSession():', useSession());
-  const [hasMounted, setHasMounted] = useState(false);
-
-  const isMobileInitial = typeof window !== 'undefined' && window.innerWidth < 768;
-
-  const [isMobile, setIsMobile] = useState(isMobileInitial);
-
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    if (typeof window === 'undefined') {
-      return isMobileInitial;
-    }
-    const savedState = localStorage.getItem('sidebarCollapsed');
-    return savedState !== null ? JSON.parse(savedState) : isMobileInitial;
-  });
 
   useEffect(() => {
-    setHasMounted(true);
-
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkIfMobile();
-
-    window.addEventListener('resize', checkIfMobile);
-
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-
-  useEffect(() => {
-    const savedState = localStorage.getItem('sidebarCollapsed');
-    if (savedState !== null) {
-      setIsCollapsed(JSON.parse(savedState));
-    } else {
-      setIsCollapsed(isMobile);
+    if (status === 'unauthenticated') {
+      router.push('/login');
+    } else if (status === 'authenticated') {
+      fetchUserSessions();
     }
-  }, [isMobile]);
+  }, [status, router]);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed));
+  const fetchUserSessions = async () => {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances`, {
+        headers: { Authorization: `Bearer ${typedSession?.jwt}` },
+        params: {
+          'filters[users][id][$eq]': typedSession?.id,
+          populate: '*',
+        },
+      });
+
+      const fetchedSessions: WhatsAppSession[] = res.data.data.map((item: any) => ({
+        id: item.id,
+        documentId: item.documentId,
+        user: item.users[0]?.id || typedSession?.id,
+        webhook_url: item.webhook_url || null,
+        state: item.state,
+        is_active: item.is_active,
+        historycal_data: item.historycal_data || [],
+      }));
+
+      if (fetchedSessions.length > 0) {
+        setHistoryData(fetchedSessions[0].historycal_data);
+      }
+    } catch (error) {
+      console.error('Error fetching user sessions:', error);
     }
-  }, [isCollapsed]);
-
-  // Handle logout function
-  const handleLogout = async () => {
-    await signOut({ greenirect: false });
-    router.push('/login');
   };
 
-  const menuItems = [
-    { name: 'Home', icon: <HomeIcon className="w-8 h-8 text-white" />, path: '/home', action: () => handleNavigation('/home') },
-    { name: 'Instances', icon: <ServerIcon className="w-8 h-8 text-white" />, path: '/instances', action: () => handleNavigation('/instances') },
-    { name: 'Profile', icon: <UserIcon className="w-8 h-8 text-white" />, path: '/profile', action: () => handleNavigation('/profile') },
-    { name: 'Subscription', icon: <InboxIcon className="w-8 h-8 text-white" />, path: '/subscription', action: () => handleNavigation('/subscription') },
-    { name: 'Documentations', icon: <DocumentTextIcon className="w-8 h-8 text-white" />, path: '/docs', action: () => handleNavigation('/docs') },
-    { name: 'Logout', icon: <ArrowLeftOnRectangleIcon className="w-8 h-8 text-white" />, path: '/login', action: handleLogout },
-  ];
-
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+  const chartData = {
+    labels: historyData.map((data) => data.date),
+    datasets: [
+      {
+        label: 'Messages Sent',
+        data: historyData.map((data) => data.message_sent),
+        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.4,
+      },
+      {
+        label: 'API Messages Sent',
+        data: historyData.map((data) => data.api_message_sent),
+        borderColor: 'rgba(153, 102, 255, 1)',
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        tension: 0.4,
+      },
+      {
+        label: 'Messages Received',
+        data: historyData.map((data) => data.message_received),
+        borderColor: 'rgba(255, 159, 64, 1)',
+        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+        tension: 0.4,
+      },
+    ],
   };
 
-  const handleNavigation = (path: string) => {
-    router.push(path);
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 2,
+    interaction: {
+      mode: 'nearest',
+      intersect: true,
+    },
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Historical Data',
+      },
+      tooltip: {
+        enabled: true, // Keep tooltips enabled
+        callbacks: {
+          label: (context: any) => {
+            const datasetLabel = context.dataset.label || '';
+            const value = context.parsed.y;
+            return `${datasetLabel}: ${value}`;
+          },
+        },
+      },
+      datalabels: {
+        display: true,
+        align: 'top' as const, // Position labels above the points
+        formatter: (value: number, context: any) => {
+          const datasetLabel = context.dataset.label || '';
+          return `${value}`; // Show only the value
+          // Optionally include the label: `${datasetLabel}: ${value}`
+        },
+        color: '#ffff', // Label color
+        font: {
+          weight: 'bold' as const,
+          size: 12,
+        },
+      },
+    },
+    scales: {
+      x: {
+        min: 0,
+        max: historyData.length > 0 ? historyData.length - 1 : 0,
+      },
+      y: {
+        min: 0,
+        max: historyData.length > 0
+          ? Math.max(...historyData.flatMap((data) => [
+              data.message_sent,
+              data.api_message_sent,
+              data.message_received,
+            ])) * 1.2
+          : 100,
+      },
+    },
   };
-
-  if (!hasMounted) {
-    return null;
-  }
 
   return (
-    <div className="flex">
-      <div className={`bg-zinc-950 text-white h-screen ${isCollapsed ? 'w-20' : 'w-60'} transition-width duration-300 ease-in-out flex flex-col`}>
-        <div className="p-4 flex items-center">
-          <div className="flex items-center">
-            {isCollapsed ? (
-              <div className="h-8 w-8 rounded-full bg-green-600 flex items-center justify-center">
-
-                <Image
-                  src={wazilrest_logo}
-                  alt="Background Logo"
-                  height={250}
-                  width={250}
-                  quality={100}
-                  priority
-                  className="mx-auto"
-                />
-
-              </div>
-            ) : (
-              <div className="flex items-center">
-
-                <Image
-                  src={fondo_transparent}
-                  alt="Background Logo"
-                  height={250}
-                  width={250}
-                  quality={100}
-                  priority
-                  className="mx-auto"
-                />
-              </div>
-            )}
-          </div>
-          <button onClick={toggleCollapse} className="ml-auto px-1 text-zinc-400">
-            {isCollapsed ? <ChevronRightIcon className="w-5 h-5" /> : <ChevronLeftIcon className="w-5 h-5" />}
-          </button>
+    <div className="p-4">
+      <Toaster richColors position="top-right" />
+      {historyData.length > 0 ? (
+        <div className="relative w-full max-w-4xl mx-auto h-[500px] box-border overflow-x-auto">
+          <Line data={chartData} options={chartOptions} />
         </div>
-
-        <div className="flex-grow">
-          {menuItems.map((item, index) => (
-            <div
-              key={index}
-              onClick={item.action}
-              className={`relative group flex ${isCollapsed ? 'flex-col items-center' : 'flex-row px-3 items-center'
-                } m-2 pt-3 pb-2 hover:bg-green-800/35 rounded cursor-pointer transition-colors duration-200`}
-            >
-              <div className="mb-2 flex-shrink-0">{item.icon}</div>
-              {/* Tooltip: Show only when collapsed and not on mobile */}
-              {isCollapsed && !isMobile && (
-                <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 hidden group-hover:block bg-green-800 text-white text-sm px-3 py-1 rounded-md shadow-lg z-10">
-                  {item.name}
-                </div>
-              )}
-              {!isCollapsed && (
-                <div className="flex items-center h-full">
-                  <span className="text-md ml-5">{item.name}</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div className={`mt-auto p-4 flex items-center ${isCollapsed ? 'justify-center' : ''} border-t border-zinc-700`}>
-          <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center overflow-hidden">
-            {photourl ? (
-              <Image
-                src={photourl}
-                alt="User Photo"
-                height={32}
-                width={32}
-                quality={100}
-                className="rounded-full"
-              />
-            ) : (
-              <div className="bg-gray-700 text-white text-sm font-bold h-full w-full flex items-center justify-center">
-                {email ? email.charAt(0).toUpperCase() : 'N/A'}
-              </div>
-            )}
-          </div>
-          {!isCollapsed && (
-            <div className="ml-3">
-              <div className="text-sm font-medium">{username}</div>
-              <div className="text-xs text-zinc-400">{email}</div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex-grow bg-zinc-50 dark:bg-zinc-900 min-h-screen">
-        {status === 'loading' && <div>Loading...</div>}
-        {status === 'authenticated' && children}
-      </div>
+      ) : (
+        <p>Loading data...</p>
+      )}
     </div>
   );
 }
 
-export default function AppLayout({ children }: { children: ReactNode }) {
+export default function Dashboard() {
   return (
-    <SessionProvider>
-      <SidebarLayout>
-          <Breadcrumb />
-          <div className="p-8">
-
-          {children}
-        </div>
-      </SidebarLayout>
-    </SessionProvider>
+    <Sidebard>
+      <DashboardContent />
+    </Sidebard>
   );
 }

@@ -3,7 +3,7 @@ import { SessionProvider, useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import Sidebard from '../home/index';
+import Sidebard from '../components/dashboard/index';
 import { PauseIcon, PlayIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Toaster, toast } from 'sonner'; // Import Sonner
 
