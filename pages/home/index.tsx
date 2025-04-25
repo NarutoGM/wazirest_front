@@ -7,6 +7,8 @@ import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ReactNode } from 'react';
+import Breadcrumb from '../components/Breadcrumb';
+
 import "../../src/app/globals.css";
 import {
   HomeIcon,
@@ -188,7 +190,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="flex-grow p-8 bg-zinc-50 dark:bg-zinc-900 min-h-screen">
+      <div className="flex-grow bg-zinc-50 dark:bg-zinc-900 min-h-screen">
         {status === 'loading' && <div>Loading...</div>}
         {status === 'authenticated' && children}
       </div>
@@ -199,7 +201,13 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
-      <SidebarLayout>{children}</SidebarLayout>
+      <SidebarLayout>
+          <Breadcrumb />
+          <div className="p-8">
+
+          {children}
+        </div>
+      </SidebarLayout>
     </SessionProvider>
   );
 }

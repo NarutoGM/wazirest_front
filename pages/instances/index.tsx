@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Sidebard from '../home/index';
+import { PauseIcon, PlayIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Toaster, toast } from 'sonner'; // Import Sonner
+
 interface CustomSession {
   id?: string;
   jwt?: string;
@@ -101,7 +104,7 @@ function DashboardContent() {
   };
 
   const fetchQrsForDisconnectedSessions = async () => {
-    const disconnectedSessions = sessions.filter((session) => (session.state === 'Disconnected' ) && session.is_active);
+    const disconnectedSessions = sessions.filter((session) => (session.state === 'Disconnected') && session.is_active);
 
 
     const initialLoadingQrs = disconnectedSessions.reduce(
@@ -205,7 +208,8 @@ function DashboardContent() {
 
       setError(null);
       //  await fetchUserSessions();
-      alert('Webhook actualizado con éxito');
+      toast.success('Webhook actualizado con éxito'); // Use Sonner toast for success
+
     } catch (error: any) {
       console.error('Error al actualizar el webhook:', error.response?.data || error.message);
       setError('Error al actualizar el webhook: ' + (error.response?.data?.error?.message || error.message));
@@ -239,11 +243,38 @@ function DashboardContent() {
       }));
     }
   };
+  
 
+  const toggleInstanceActive = async (documentId: string, currentActiveState: boolean) => {
+    try {
+      const newActiveState = !currentActiveState;
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances/${documentId}`,
+        {
+          data: { is_active: newActiveState },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${typedSession?.jwt}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setError(null);
+      await fetchUserSessions(); // Refresca las sesiones
+      toast.success(`Instancia ${newActiveState ? 'activada' : 'pausada'} con éxito`); // Use Sonner toast for success
+
+    } catch (error: any) {
+      console.error('Error al alternar estado de la instancia:', error.response?.data || error.message);
+      setError('Error al alternar estado de la instancia: ' + (error.response?.data?.error?.message || error.message));
+    }
+  };
 
   return (
     <div className="">
-      <div className="p-5 max-w-5xl mx-auto">
+      <Toaster richColors position="top-right" /> {/* Add Sonner Toaster */}
+
+      <div className="p-5  mx-auto">
         <h1 className="text-2xl font-bold text-white mb-6">
           Bienvenido, {username}
         </h1>
@@ -272,7 +303,7 @@ function DashboardContent() {
               {sessions.map((session) => (
                 <div
                   key={session.documentId}
-                  className="bg-zinc-800 rounded-lg  shadow-md p-3 hover:shadow-lg transition-shadow duration-300 border border-zinc-700"
+                  className="bg-zinc-800 rounded-lg shadow-md p-3 hover:shadow-lg transition-shadow duration-300 border border-zinc-700"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -284,7 +315,7 @@ function DashboardContent() {
                           onError={(e) => (e.currentTarget.src = '/default-profile.png')}
                         />
                       ) : (
-                        <div className="w-10 h-10  rounded-full bg-zinc-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-zinc-600 flex items-center justify-center">
                           <span className="text-white text-sm">
                             {profiles[session.documentId]?.name?.charAt(0) || 'I'}
                           </span>
@@ -297,35 +328,47 @@ function DashboardContent() {
                     <div className="flex items-center gap-2">
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${{
-                            Initializing: 'bg-yellow-100 text-yellow-800',
-                            Connected: 'bg-green-100 text-green-800',
-                            Failure: 'bg-orange-100 text-orange-800',
-                            Disconnected: 'bg-red-100 text-red-800'
-                          }[session.state] || 'bg-gray-100 text-gray-800'
+                          Initializing: 'bg-yellow-100 text-yellow-800',
+                          Connected: 'bg-green-100 text-green-800',
+                          Failure: 'bg-orange-100 text-orange-800',
+                          Disconnected: 'bg-red-100 text-red-800',
+                        }[session.state] || 'bg-gray-100 text-gray-800'
                           }`}
                       >
                         {session.state}
                       </span>
-                      <button
-                        onClick={() => deleteInstance(session.documentId)}
-                        className="text-green-500 hover:text-green-700"
-                        title="Eliminar instancia"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
+                      {session.state === "Connected" && (
+                        <button
+                          onClick={() => toggleInstanceActive(session.documentId, session.is_active)}
+                          className={`flex items-center justify-center w-8 h-8 rounded-full transition ${session.is_active
+                              ? 'bg-green-600 hover:bg-green-700 text-white'
+                              : 'bg-gray-600 hover:bg-gray-700 text-white'
+                            }`}
+                          title={session.is_active ? 'Pausar instancia' : 'Activar instancia'}
+                        >
+                          {session.is_active ? (
+                            <PauseIcon className="w-5 h-5" />
+                          ) : (
+                            <PlayIcon className="w-5 h-5" />
+                          )}
+                        </button>
+                      )}
+                      {session.state === "Failure" && (
+                        <button
+                          onClick={() => deleteInstance(session.documentId)}
+                          className="text-red-500 hover:text-red-700"
+                          title="Eliminar instancia"
+                        >
+                          <XMarkIcon className="w-5 h-5 font-bold" />
+                        </button>
+                      )}
                     </div>
                   </div>
 
+
                   <div className="space-y-4">
                     <p className="text-zinc-400">
-                      <span className="font-medium">ClientId:</span> {session.documentId}
+                      <span className="font-bold">ClientId:</span> {session.documentId}
                     </p>
                     <div>
                       <label className="text-zinc-400 font-medium block mb-1">Webhook:</label>
@@ -335,7 +378,7 @@ function DashboardContent() {
                           value={webhookInputs[session.documentId] || ''}
                           onChange={(e) => handleWebhookChange(session.documentId, e.target.value)}
                           placeholder="https://ejemplo.com/webhook"
-                          className="p-2 w-full text-zinc-400 bg-zinc-900 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="p-2 w-full text-zinc-400 bg-zinc-900 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                         />
                         <button
                           onClick={() => updateWebhook(session.documentId)}
@@ -345,7 +388,7 @@ function DashboardContent() {
                         </button>
                       </div>
                     </div>
-                    {session.state  != "Connected" && (
+                    {session.state != "Connected" && (
                       <div>
                         <label className="text-zinc-400 font-medium block mb-1">Escanea este QR:</label>
                         {loadingQrs[session.documentId] ? (
@@ -396,11 +439,6 @@ export default function Dashboard() {
       <DashboardContent />
 
     </Sidebard>
-
-
-
-
-
 
 
   );
