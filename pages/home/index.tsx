@@ -1,10 +1,10 @@
 'use client';
 import { SessionProvider, useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Sidebard from '../components/dashboard/index';
-import { Toaster } from 'sonner';
+import { Toaster, toast } from 'sonner';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -16,9 +16,9 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels'; // Import the plugin
+import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
-// Register Chart.js components and the data labels plugin
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,7 +27,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ChartDataLabels // Register the plugin
+  ChartDataLabels
 );
 
 interface CustomSession {
@@ -55,9 +55,17 @@ interface WhatsAppSession {
 
 function DashboardContent() {
   const { data: session, status } = useSession();
-  const [historyData, setHistoryData] = useState<any[]>([]);
   const typedSession = session as CustomSession | null;
   const router = useRouter();
+  const [instances, setInstances] = useState<WhatsAppSession[]>([]);
+  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
+  const [historyData, setHistoryData] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<{
+    [key: string]: { name?: string; profilePicUrl?: string | null };
+  }>({});
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -67,7 +75,19 @@ function DashboardContent() {
     }
   }, [status, router]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const fetchUserSessions = async () => {
+    setLoading(true);
     try {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances`, {
         headers: { Authorization: `Bearer ${typedSession?.jwt}` },
@@ -87,13 +107,59 @@ function DashboardContent() {
         historycal_data: item.historycal_data || [],
       }));
 
+      setInstances(fetchedSessions);
+
+      // Fetch profile data for connected instances
+      fetchedSessions.forEach((session) => {
+        if (session.state === 'Connected') {
+          fetchProfileData(session.documentId);
+        }
+      });
+
+      // Set default selected instance
       if (fetchedSessions.length > 0) {
-        setHistoryData(fetchedSessions[0].historycal_data);
+        setSelectedInstanceId(fetchedSessions[0].documentId);
+        setHistoryData(fetchedSessions[0].historycal_data || []);
       }
     } catch (error) {
       console.error('Error fetching user sessions:', error);
+      toast.error('Failed to fetch instances. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
+
+  const fetchProfileData = async (documentId: string) => {
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/profile/${documentId}`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      setProfiles((prev) => ({
+        ...prev,
+        [documentId]: {
+          name: res.data.name,
+          profilePicUrl: res.data.profilePicUrl,
+        },
+      }));
+    } catch (error: any) {
+      console.error(`Error fetching profile for ${documentId}:`, error.response?.data || error.message);
+      setProfiles((prev) => ({
+        ...prev,
+        [documentId]: { name: 'Unknown', profilePicUrl: null },
+      }));
+    }
+  };
+
+  const handleInstanceSelect = (documentId: string) => {
+    setSelectedInstanceId(documentId);
+    const selectedInstance = instances.find((instance) => instance.documentId === documentId);
+    setHistoryData(selectedInstance?.historycal_data || []);
+    setIsDropdownOpen(false);
+  };
+
+  // Get the selected instance and profile
+  const selectedInstance = instances.find((instance) => instance.documentId === selectedInstanceId);
+  const selectedProfile = selectedInstance ? profiles[selectedInstance.documentId] : null;
 
   const chartData = {
     labels: historyData.map((data) => data.date),
@@ -139,7 +205,7 @@ function DashboardContent() {
         text: 'Historical Data',
       },
       tooltip: {
-        enabled: true, // Keep tooltips enabled
+        enabled: true,
         callbacks: {
           label: (context: any) => {
             const datasetLabel = context.dataset.label || '';
@@ -150,13 +216,9 @@ function DashboardContent() {
       },
       datalabels: {
         display: true,
-        align: 'top' as const, // Position labels above the points
-        formatter: (value: number, context: any) => {
-          const datasetLabel = context.dataset.label || '';
-          return `${value}`; // Show only the value
-          // Optionally include the label: `${datasetLabel}: ${value}`
-        },
-        color: '#ffff', // Label color
+        align: 'top' as const,
+        formatter: (value: number) => `${value}`,
+        color: '#ffff',
         font: {
           weight: 'bold' as const,
           size: 12,
@@ -184,12 +246,89 @@ function DashboardContent() {
   return (
     <div className="p-4">
       <Toaster richColors position="top-right" />
-      {historyData.length > 0 ? (
-        <div className="relative w-full max-w-4xl mx-auto h-[500px] box-border overflow-x-auto">
-          <Line data={chartData} options={chartOptions} />
-        </div>
+      {loading ? (
+        <p className="text-zinc-400">Loading instances...</p>
+      ) : instances.length === 0 ? (
+        <p className="text-zinc-400">No instances available. Please create a new instance.</p>
       ) : (
-        <p>Loading data...</p>
+        <>
+          <div className="mb-4">
+            <label className="text-white mb-2 block">Select Instance:</label>
+            <div className="relative" ref={dropdownRef}>
+              {/* Dropdown Trigger */}
+              <div
+                className="flex items-center justify-between p-3 bg-zinc-800 border border-zinc-700 rounded-lg cursor-pointer hover:bg-zinc-700 transition"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                <div className="flex items-center gap-3">
+                  {selectedInstance?.state === 'Connected' && selectedProfile?.profilePicUrl && (
+                    <img
+                      src={selectedProfile.profilePicUrl}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full object-cover border-2 border-green-500"
+                      onError={(e) => (e.currentTarget.src = '/default-profile.png')}
+                    />
+                  )}
+                  <span className="text-white">
+                    {selectedInstance?.documentId || 'Select an instance'}{' '}
+                    {selectedInstance?.state === 'Connected' && selectedProfile?.name
+                      ? `(${selectedProfile.name})`
+                      : ''}
+                  </span>
+                </div>
+                <ChevronDownIcon
+                  className={`w-5 h-5 text-white transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                />
+              </div>
+              {/* Dropdown Menu */}
+              {isDropdownOpen && (
+                <div className="absolute z-10 mt-2 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {instances.map((instance) => {
+                    const profile = profiles[instance.documentId];
+                    return (
+                      <div
+                        key={instance.documentId}
+                        className="flex items-center gap-3 p-3 hover:bg-zinc-700 cursor-pointer transition"
+                        onClick={() => handleInstanceSelect(instance.documentId)}
+                      >
+                        {instance.state === 'Connected' && profile?.profilePicUrl && (
+                          <img
+                            src={profile.profilePicUrl}
+                            alt="Profile"
+                            className="w-8 h-8 rounded-full object-cover border-2 border-green-500"
+                            onError={(e) => (e.currentTarget.src = '/default-profile.png')}
+                          />
+                        )}
+                        <div>
+                          <span className="text-white">{instance.documentId}</span>
+                          {instance.state === 'Connected' && profile?.name && (
+                            <span className="text-zinc-400 text-sm block">{profile.name}</span>
+                          )}
+                        </div>
+                        <span
+                          className={`ml-auto text-xs px-2 py-1 rounded-full ${
+                            instance.state === 'Connected'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {instance.state}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+          {historyData.length > 0 ? (
+            <div className="relative w-full max-w-4xl mx-auto h-[500px] box-border overflow-x-auto">
+              <Line data={chartData} options={chartOptions} />
+            </div>
+          ) : (
+            <p className="text-zinc-400">No historical data available for this instance.</p>
+          )}
+        </>
       )}
     </div>
   );
