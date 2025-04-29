@@ -30,7 +30,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
   const username = useSession().data?.username;
   const photourl = useSession().data?.user?.image;
 
-  console.log('useSession():', useSession());
+ // console.log('useSession():', useSession());
   const [hasMounted, setHasMounted] = useState(false);
 
   const isMobileInitial = typeof window !== 'undefined' && window.innerWidth < 768;

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Sidebard from '../components/dashboard/index';
-import { PauseIcon, PlayIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PauseIcon, PlayIcon, XMarkIcon, PowerIcon, Cog6ToothIcon  } from '@heroicons/react/24/outline';
 import { Toaster, toast } from 'sonner'; // Import Sonner
 
 interface CustomSession {
@@ -36,7 +36,7 @@ function DashboardContent() {
   const [qrCodes, setQrCodes] = useState<{ [key: string]: string }>({});
   const [loadingSessions, setLoadingSessions] = useState<boolean>(true);
   const [loadingQrs, setLoadingQrs] = useState<{ [key: string]: boolean }>({});
-  const [profiles, setProfiles] = useState<{ [key: string]: { name?: string; profilePicUrl?: string | null } }>({});
+  const [profiles, setProfiles] = useState<{ [key: string]: { name?: string; profilePicUrl?: string | null; number?: string | null } }>({});
   // Cargar sesiones
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -233,17 +233,18 @@ function DashboardContent() {
         [documentId]: {
           name: res.data.name,
           profilePicUrl: res.data.profilePicUrl,
+          number: res.data.number
         },
       }));
     } catch (error: any) {
       console.error(`Error fetching profile for ${documentId}:`, error.response?.data || error.message);
       setProfiles((prev) => ({
         ...prev,
-        [documentId]: { name: 'Unknown', profilePicUrl: null },
+        [documentId]: { name: 'Unknown', profilePicUrl: null, number: null },
       }));
     }
   };
-  
+
 
   const toggleInstanceActive = async (documentId: string, currentActiveState: boolean) => {
     try {
@@ -297,7 +298,7 @@ function DashboardContent() {
           {loadingSessions ? (
             <p className="text-zinc-400">Cargando sesiones...</p>
           ) : sessions.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
 
 
               {sessions.map((session) => (
@@ -306,24 +307,29 @@ function DashboardContent() {
                   className="bg-zinc-800 rounded-lg shadow-md p-3 hover:shadow-lg transition-shadow duration-300 border border-zinc-700"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       {profiles[session.documentId]?.profilePicUrl ? (
                         <img
                           src={profiles[session.documentId].profilePicUrl}
                           alt="Profile"
-                          className="w-20 h-20 border-4 border-green-500 rounded-full object-cover"
+                          className="w-16 h-16 border-4 border-green-500 rounded-full object-cover shadow-lg"
                           onError={(e) => (e.currentTarget.src = '/default-profile.png')}
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-zinc-600 flex items-center justify-center">
-                          <span className="text-white text-sm">
+                        <div className="w-16 h-16 rounded-full bg-zinc-700 flex items-center justify-center shadow-lg">
+                          <span className="text-white text-lg font-bold">
                             {profiles[session.documentId]?.name?.charAt(0) || 'I'}
                           </span>
                         </div>
                       )}
-                      <h3 className="text-xl font-semibold text-white">
-                        {profiles[session.documentId]?.name || 'Instancia'}
-                      </h3>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">
+                          {profiles[session.documentId]?.name || 'Instancia'}
+                        </h3>
+                        <p className="text-sm text-zinc-400">
+                          {profiles[session.documentId]?.number || 'Número no disponible'}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span
@@ -338,21 +344,40 @@ function DashboardContent() {
                         {session.state}
                       </span>
                       {session.state === "Connected" && (
-                        <button
-                          onClick={() => toggleInstanceActive(session.documentId, session.is_active)}
-                          className={`flex items-center justify-center w-8 h-8 rounded-full transition ${session.is_active
+                        <div className='flex gap-2'>
+
+                          <button
+                            onClick={() => toggleInstanceActive(session.documentId, session.is_active)}
+                            className={`flex items-center justify-center w-8 h-8 rounded-full transition ${session.is_active
                               ? 'bg-green-600 hover:bg-green-700 text-white'
                               : 'bg-gray-600 hover:bg-gray-700 text-white'
-                            }`}
-                          title={session.is_active ? 'Pausar instancia' : 'Activar instancia'}
-                        >
-                          {session.is_active ? (
-                            <PauseIcon className="w-5 h-5" />
-                          ) : (
-                            <PlayIcon className="w-5 h-5" />
-                          )}
-                        </button>
+                              }`}
+                            title={session.is_active ? 'Pausar instancia' : 'Activar instancia'}
+                          >
+                            {session.is_active ? (
+                              <PauseIcon className="w-5 h-5" />
+                            ) : (
+                              <PlayIcon className="w-5 h-5" />
+                            )}
+
+
+
+
+                          </button>
+                          <button
+                            onClick={() => DisconnectInstance(session.documentId)}
+                            className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white transition"
+                            title="Desconectar instancia"
+                          >
+                            <PowerIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+
+
                       )}
+
+
+
                       {session.state === "Failure" && (
                         <button
                           onClick={() => deleteInstance(session.documentId)}
@@ -367,11 +392,33 @@ function DashboardContent() {
 
 
                   <div className="space-y-4">
-                    <p className="text-zinc-400">
-                      <span className="font-bold">ClientId:</span> {session.documentId}
-                    </p>
+
+                    <div className="flex justify-between items-center">
+                      <p className="text-zinc-400">
+                        <span className="font-bold">ClientId:</span> {session.documentId}
+                      </p>
+
+
+
+                      {session.state === "Connected" && (
+                        <button
+                          onClick={() => DisconnectInstance(session.documentId)}
+                          className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 hover:bg-slate-700 text-white transition"
+                          title="Config your weebhook"
+                        >
+                          <Cog6ToothIcon  className="w-5 h-5" />
+                        </button>
+                      )}
+
+                    </div>
+
+
+
+
                     <div>
+
                       <label className="text-zinc-400 font-medium block mb-1">Webhook:</label>
+
                       <div className="flex gap-2">
                         <input
                           type="text"
@@ -388,6 +435,7 @@ function DashboardContent() {
                         </button>
                       </div>
                     </div>
+
                     {session.state != "Connected" && (
                       <div>
                         <label className="text-zinc-400 font-medium block mb-1">Escanea este QR:</label>
@@ -413,7 +461,15 @@ function DashboardContent() {
                         )}
                       </div>
                     )}
+
+
+
+
                   </div>
+
+
+
+
                 </div>
               ))}
 
