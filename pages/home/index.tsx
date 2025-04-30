@@ -18,6 +18,7 @@ import {
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import type { ChartOptions } from 'chart.js';
 
 ChartJS.register(
   CategoryScale,
@@ -188,7 +189,7 @@ function DashboardContent() {
     ],
   };
 
-  const chartOptions = {
+  const chartOptions: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: true,
     aspectRatio: 2,

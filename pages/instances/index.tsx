@@ -385,20 +385,14 @@ function DashboardContent() {
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
-                      {profiles[session.documentId]?.profilePicUrl ? (
                         <img
-                          src={profiles[session.documentId].profilePicUrl}
+                          src={profiles[session.documentId]?.profilePicUrl ?? '/logo/profile.png'}
                           alt="Profile"
                           className="w-16 h-16 border-4 border-green-500 rounded-full object-cover shadow-lg"
-                          onError={(e) => (e.currentTarget.src = '/default-profile.png')}
+                          onError={(e) => (e.currentTarget.src = '/logo/profile.png')}
                         />
-                      ) : (
-                        <div className="w-16 h-16 rounded-full bg-zinc-700 flex items-center justify-center shadow-lg">
-                          <span className="text-white text-lg font-bold">
-                            {profiles[session.documentId]?.name?.charAt(0) || 'I'}
-                          </span>
-                        </div>
-                      )}
+
+                    
                       <div>
                         <h3 className="text-lg font-semibold text-white">
                           {profiles[session.documentId]?.name || 'Instancia'}

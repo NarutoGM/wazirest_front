@@ -10,8 +10,9 @@ import wazone from '../../../public/logo/wallpaper-wazone.png';
 import fondo from '../../../public/img/fondo.png';
 import fondo_transparent from '../../../public/logo/wazilrest_white.png';
 import router from 'next/router';
+import { Suspense } from 'react';
 
-export default function ResetPassword() {
+function ResetPassword() {
   const searchParams = useSearchParams();
   const code = searchParams?.get('code') || undefined; // Retrieve `code` from query params
   const [password, setPassword] = useState<string>('');
@@ -111,5 +112,13 @@ export default function ResetPassword() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="text-white text-center">Cargando...</div>}>
+      <ResetPassword />
+    </Suspense>
   );
 }

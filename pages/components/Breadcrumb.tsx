@@ -6,8 +6,10 @@ import Link from 'next/link';
 
 export default function Breadcrumb() {
     const pathname = usePathname(); // Ej: "/productos/aceite"
-    const pathParts = pathname.split('/').filter(Boolean); // ['productos', 'aceite']
+    if (!pathname) return null; 
 
+    const pathParts = pathname.split('/').filter(Boolean);
+    
     return (
         <nav className="text-sm text-gray-400 bg-zinc-800 p-6">
             <ol className="list-reset flex items-center space-x-2">

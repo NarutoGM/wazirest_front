@@ -1,42 +1,37 @@
 'use client';
 import Image from 'next/image';
-import fondo_transparent from '../../../public/logo/wazilrest_white.png'
-import wazilrest_logo from '../../../public/logo/wazilrest_logo.png'
+import fondo_transparent from '../../../public/logo/wazilrest_white.png';
+import wazilrest_logo from '../../../public/logo/wazilrest_logo.png';
 
 import { SessionProvider, useSession, signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation'; // Add usePathname
 import { ReactNode } from 'react';
 import Breadcrumb from '../Breadcrumb';
 
-import "../../../src/app/globals.css";
+import '../../../src/app/globals.css';
 import {
   HomeIcon,
   ServerIcon,
   UserIcon,
   InboxIcon,
-  LinkIcon,
-  WrenchScrewdriverIcon,
   DocumentTextIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ArrowLeftOnRectangleIcon
+  ArrowLeftOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 
 function SidebarLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname(); // Get the current pathname
   const { status } = useSession();
   const email = useSession().data?.user?.email;
   const username = useSession().data?.username;
   const photourl = useSession().data?.user?.image;
 
- // console.log('useSession():', useSession());
   const [hasMounted, setHasMounted] = useState(false);
-
   const isMobileInitial = typeof window !== 'undefined' && window.innerWidth < 768;
-
   const [isMobile, setIsMobile] = useState(isMobileInitial);
-
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window === 'undefined') {
       return isMobileInitial;
@@ -47,15 +42,11 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setHasMounted(true);
-
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
     checkIfMobile();
-
     window.addEventListener('resize', checkIfMobile);
-
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
@@ -74,7 +65,6 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isCollapsed]);
 
-  // Handle logout function
   const handleLogout = async () => {
     await signOut({ redirect: false });
     router.push('/login');
@@ -103,12 +93,14 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex">
-      <div className={`bg-zinc-950 text-white h-screen ${isCollapsed ? 'w-20' : 'w-60'} transition-width duration-300 ease-in-out flex flex-col`}>
+      <div
+        className={`bg-zinc-950 text-white h-screen ${isCollapsed ? 'w-20' : 'w-60'
+          } transition-width duration-300 ease-in-out flex flex-col`}
+      >
         <div className="p-4 flex items-center">
           <div className="flex items-center">
             {isCollapsed ? (
               <div className="h-8 w-8 rounded-full bg-green-600 flex items-center justify-center">
-
                 <Image
                   src={wazilrest_logo}
                   alt="Background Logo"
@@ -118,11 +110,9 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
                   priority
                   className="mx-auto"
                 />
-
               </div>
             ) : (
               <div className="flex items-center">
-
                 <Image
                   src={fondo_transparent}
                   alt="Background Logo"
@@ -141,30 +131,47 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex-grow">
-          {menuItems.map((item, index) => (
-            <div
-              key={index}
-              onClick={item.action}
-              className={`relative group flex ${isCollapsed ? 'flex-col items-center' : 'flex-row px-3 items-center'
-                } m-2 pt-3 pb-2 hover:bg-green-800/35 rounded cursor-pointer transition-colors duration-200`}
-            >
-              <div className="mb-2 flex-shrink-0">{item.icon}</div>
-              {/* Tooltip: Show only when collapsed and not on mobile */}
-              {isCollapsed && !isMobile && (
-                <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 hidden group-hover:block bg-green-800 text-white text-sm px-3 py-1 rounded-md shadow-lg z-10">
-                  {item.name}
+          {menuItems.map((item, index) => {
+            const isActive = pathname === item.path;
+            return (
+              <div
+                key={index}
+                onClick={item.action}
+                className={`relative group flex ${isCollapsed ? 'flex-col items-center' : 'flex-row px-3 items-center'
+                  } m-2 pt-3 pb-2 rounded cursor-pointer transition-colors duration-200 ${isActive ? 'bg-green-700' : 'hover:bg-green-800/35'
+                  } ${item.name === 'Logout' ? ' hover:bg-red-800/35 text-white ' : 'text-white'}`} // Add red color for Logout
+              >
+                <div className="mb-2 flex-shrink-0">
+                  {item.name === 'Logout' ? (
+                    <ArrowLeftOnRectangleIcon className="w-8 h-8 text-white" /> // Red icon for Logout
+                  ) : (
+                    item.icon
+                  )}
                 </div>
-              )}
-              {!isCollapsed && (
-                <div className="flex items-center h-full">
-                  <span className="text-md ml-5">{item.name}</span>
-                </div>
-              )}
-            </div>
-          ))}
+                {isCollapsed && !isMobile && (
+                  <div
+                    className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 hidden group-hover:block ${item.name === 'Logout' ? 'bg-red-800' : 'bg-green-800'
+                      } text-white text-sm px-3 py-1 rounded-md shadow-lg z-10`}
+                  >
+                    {item.name}
+                  </div>
+                )}
+
+
+
+                {!isCollapsed && (
+                  <div className="flex items-center h-full">
+                    <span className="text-md ml-5">{item.name}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div className={`mt-auto p-4 flex items-center ${isCollapsed ? 'justify-center' : ''} border-t border-zinc-700`}>
+        <div
+          className={`mt-auto p-4 flex items-center ${isCollapsed ? 'justify-center' : ''} border-t border-zinc-700`}
+        >
           <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center overflow-hidden">
             {photourl ? (
               <Image
@@ -176,8 +183,8 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
                 className="rounded-full"
               />
             ) : (
-              <div className="bg-gray-700 text-white text-sm font-bold h-full w-full flex items-center justify-center">
-                {email ? email.charAt(0).toUpperCase() : 'N/A'}
+              <div className="bg-green-700 text-white text-sm font-bold h-full w-full flex items-center justify-center">
+                {email ? email.charAt(0) : 'N/A'}
               </div>
             )}
           </div>
@@ -202,12 +209,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
       <SidebarLayout>
-          <Breadcrumb />
-          <div className="p-8">
-
-          {children}
-          
-        </div>
+        <Breadcrumb />
+        <div className="p-8">{children}</div>
       </SidebarLayout>
     </SessionProvider>
   );

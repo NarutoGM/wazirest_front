@@ -45,7 +45,7 @@ export const authOptions: AuthOptions = {
     signIn: '/login',
   },
   callbacks: {
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user , account, profile }) {
       if (account?.provider === 'google' && account.access_token) {
         try {
           const googleEmail = profile?.email;
@@ -88,7 +88,7 @@ export const authOptions: AuthOptions = {
       } else if (account?.provider === 'credentials') {
         if (user) {
           token.jwt = user.jwt;
-          token.id = user.id;
+          token.id = Number(user.id);
           token.username = user.username;
           token.email = user.email;
           token.roleName = user.role?.name;
