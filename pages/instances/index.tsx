@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Sidebard from '../components/dashboard/index';
-import { PauseIcon, PlayIcon, XMarkIcon, PowerIcon, Cog6ToothIcon  } from '@heroicons/react/24/outline';
+import { PauseIcon, PlayIcon, XMarkIcon, PowerIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { Toaster, toast } from 'sonner'; // Import Sonner
 
 interface CustomSession {
@@ -381,7 +381,7 @@ function DashboardContent() {
               {sessions.map((session) => (
                 <div
                   key={session.documentId}
-                  className="bg-zinc-800 rounded-lg shadow-md p-3 hover:shadow-lg transition-shadow duration-300 border border-zinc-700"
+                  className="bg-zinc-800 rounded-lg shadow-md p-3    border border-zinc-700"
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-4">
@@ -483,7 +483,7 @@ function DashboardContent() {
                           className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 hover:bg-slate-700 text-white transition"
                           title="Configura tu weebhook"
                         >
-                          <Cog6ToothIcon  className="w-5 h-5" />
+                          <Cog6ToothIcon className="w-5 h-5" />
                         </button>
                       )}
 
@@ -560,64 +560,68 @@ function DashboardContent() {
 
 
       {isModalOpen && (
-  <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-zinc-800 rounded-lg p-6 w-full max-w-md">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-white">Configurar Webhook</h3>
-        <button
-          onClick={() => setIsModalOpen(false)}
-          className="text-zinc-400 hover:text-white"
-        >
-          <XMarkIcon className="w-6 h-6" />
-        </button>
-      </div>
-      <div className="space-y-4">
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            checked={webhookSettings.message_received}
-            onChange={(e) =>
-              setWebhookSettings((prev) => ({
-                ...prev,
-                message_received: e.target.checked,
-              }))
-            }
-            className="mr-2"
-          />
-          <label className="text-zinc-400">Recibir mensajes (message_received)</label>
+        <div className="fixed inset-0 bg-zinc/40 bg-opacity-50  shadow-md flex   items-center justify-center z-50">
+          <div className=" bg-zinc-800 border  border-zinc-700 rounded-lg p-6 w-full max-w-md">
+
+
+            <div className="flex  justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">Configurar Webhook</h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-zinc-400 hover:text-white"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={webhookSettings.message_received}
+                  onChange={(e) =>
+                    setWebhookSettings((prev) => ({
+                      ...prev,
+                      message_received: e.target.checked,
+                    }))
+                  }
+                  className="mr-2"
+                />
+                <label className="text-zinc-400">Recibir mensajes (message_received)</label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={webhookSettings.message_sent}
+                  onChange={(e) =>
+                    setWebhookSettings((prev) => ({
+                      ...prev,
+                      message_sent: e.target.checked,
+                    }))
+                  }
+                  className="mr-2"
+                />
+                <label className="text-zinc-400">Mensajes enviados (message_sent)</label>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="bg-zinc-600 text-white px-4 py-2 rounded-md hover:bg-zinc-700 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveWebhookSettings}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+              >
+                Guardar
+              </button>
+            </div>
+
+
+          </div>
         </div>
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            checked={webhookSettings.message_sent}
-            onChange={(e) =>
-              setWebhookSettings((prev) => ({
-                ...prev,
-                message_sent: e.target.checked,
-              }))
-            }
-            className="mr-2"
-          />
-          <label className="text-zinc-400">Mensajes enviados (message_sent)</label>
-        </div>
-      </div>
-      <div className="flex justify-end gap-2 mt-6">
-        <button
-          onClick={() => setIsModalOpen(false)}
-          className="bg-zinc-600 text-white px-4 py-2 rounded-md hover:bg-zinc-700 transition"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={saveWebhookSettings}
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
-        >
-          Guardar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </div>
 
 
