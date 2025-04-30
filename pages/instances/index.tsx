@@ -22,12 +22,15 @@ interface WhatsAppSession {
   state: string;
   name?: string; // Add name
   profilePicUrl?: string | null; // Add profile picture URL
+  message_received?: boolean; // Add message_received
+  message_sent?: boolean; // Add message_sent
 }
 
 function DashboardContent() {
   const { data: session, status } = useSession();
   const username = useSession().data?.username;
-
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const typedSession = session as CustomSession | null;
   const router = useRouter();
   const [sessions, setSessions] = useState<WhatsAppSession[]>([]);
@@ -37,6 +40,15 @@ function DashboardContent() {
   const [loadingSessions, setLoadingSessions] = useState<boolean>(true);
   const [loadingQrs, setLoadingQrs] = useState<{ [key: string]: boolean }>({});
   const [profiles, setProfiles] = useState<{ [key: string]: { name?: string; profilePicUrl?: string | null; number?: string | null } }>({});
+
+
+
+  const [webhookSettings, setWebhookSettings] = useState<{
+    message_received: boolean;
+    message_sent: boolean;
+  }>({ message_received: false, message_sent: false });
+
+
   // Cargar sesiones
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -71,7 +83,8 @@ function DashboardContent() {
         webhook_url: item.webhook_url || null,
         state: item.state,
         is_active: item.is_active,
-
+        message_received: item.message_received || false, // Include message_received
+        message_sent: item.message_sent || false, // Include message_sent
       }));
 
       setSessions(fetchedSessions);
@@ -271,6 +284,70 @@ function DashboardContent() {
     }
   };
 
+
+  const DisconnectInstance = async (documentId: string) => {
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/disconnect-session/${documentId}`,
+        {},
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      toast.success('Sesión desconectada con éxito');
+      await fetchUserSessions(); // Refresh sessions
+    } catch (error: any) {
+      console.error('Error al desconectar la instancia:', error.response?.data || error.message);
+      setError('Error al desconectar la instancia: ' + (error.response?.data?.error?.message || error.message));
+      toast.error('Error al desconectar la instancia');
+    }
+  };
+
+  const ConfigInstance = async (documentId: string) => {
+    const session = sessions.find((s) => s.documentId === documentId);
+
+    console.log(session)
+    if (session) {
+      setWebhookSettings({
+        message_received: session.message_received || false,
+        message_sent: session.message_sent || false,
+      });
+      setSelectedDocumentId(documentId);
+      console.log(webhookSettings)
+
+      setIsModalOpen(true);
+    }
+  };
+
+  const saveWebhookSettings = async () => {
+    if (!selectedDocumentId) return;
+    console.log(selectedDocumentId)
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances/${selectedDocumentId}`,
+        {
+          data: {
+            message_received: webhookSettings.message_received,
+            message_sent: webhookSettings.message_sent,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${typedSession?.jwt}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      toast.success('Configuración de webhook actualizada con éxito');
+      setIsModalOpen(false);
+      await fetchUserSessions(); // Refresh sessions
+    } catch (error: any) {
+      console.error('Error al actualizar configuración de webhook:', error.response?.data || error.message);
+      setError('Error al actualizar configuración de webhook: ' + (error.response?.data?.error?.message || error.message));
+      toast.error('Error al actualizar configuración de webhook');
+    }
+  };
+
   return (
     <div className="">
       <Toaster richColors position="top-right" /> {/* Add Sonner Toaster */}
@@ -402,9 +479,9 @@ function DashboardContent() {
 
                       {session.state === "Connected" && (
                         <button
-                          onClick={() => DisconnectInstance(session.documentId)}
+                          onClick={() => ConfigInstance(session.documentId)}
                           className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 hover:bg-slate-700 text-white transition"
-                          title="Config your weebhook"
+                          title="Configura tu weebhook"
                         >
                           <Cog6ToothIcon  className="w-5 h-5" />
                         </button>
@@ -480,7 +557,71 @@ function DashboardContent() {
           )}
         </div>
       </div>
+
+
+      {isModalOpen && (
+  <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-zinc-800 rounded-lg p-6 w-full max-w-md">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-white">Configurar Webhook</h3>
+        <button
+          onClick={() => setIsModalOpen(false)}
+          className="text-zinc-400 hover:text-white"
+        >
+          <XMarkIcon className="w-6 h-6" />
+        </button>
+      </div>
+      <div className="space-y-4">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            checked={webhookSettings.message_received}
+            onChange={(e) =>
+              setWebhookSettings((prev) => ({
+                ...prev,
+                message_received: e.target.checked,
+              }))
+            }
+            className="mr-2"
+          />
+          <label className="text-zinc-400">Recibir mensajes (message_received)</label>
+        </div>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            checked={webhookSettings.message_sent}
+            onChange={(e) =>
+              setWebhookSettings((prev) => ({
+                ...prev,
+                message_sent: e.target.checked,
+              }))
+            }
+            className="mr-2"
+          />
+          <label className="text-zinc-400">Mensajes enviados (message_sent)</label>
+        </div>
+      </div>
+      <div className="flex justify-end gap-2 mt-6">
+        <button
+          onClick={() => setIsModalOpen(false)}
+          className="bg-zinc-600 text-white px-4 py-2 rounded-md hover:bg-zinc-700 transition"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={saveWebhookSettings}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+        >
+          Guardar
+        </button>
+      </div>
     </div>
+  </div>
+)}
+    </div>
+
+
+
   );
 
 
