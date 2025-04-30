@@ -9,8 +9,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  output: 'standalone', // Agregar esta línea para habilitar la salida standalone
-
 };
 
 export default nextConfig;
