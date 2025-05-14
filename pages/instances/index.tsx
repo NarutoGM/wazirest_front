@@ -54,7 +54,6 @@ function DashboardContent() {
         Authorization: `Bearer ${token}`,
       },
     });
-
     if (!res.ok) {
       console.error(`Error en respuesta: ${res.status} ${res.statusText}`);
       throw new Error(`Error API: ${res.status}`);
@@ -66,7 +65,6 @@ function DashboardContent() {
     const fetchedSessions: WhatsAppSession[] = data.data.map((item: any) => ({
       id: item.id,
       documentId: item.documentId,
-      user: item.users[0]?.id || typedSession?.id || '',
       webhook_url: item.webhook_url || null,
       state: item.state,
       is_active: item.is_active,
@@ -83,7 +81,7 @@ function DashboardContent() {
   const { data: fetchedSessions, error, isLoading: loadingSessions } = useSWR(
     typedSession?.jwt
       ? [
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances?filters[users][id][$eq]=${typedSession.id}&populate=*`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances?filters[user][id][$eq]=${typedSession.id}`,
         typedSession.jwt,
       ]
       : null,
@@ -156,24 +154,27 @@ function DashboardContent() {
 
   const createNewInstance = async () => {
     try {
-      const postData = {
-        data: {
+      const response = await axios.post(
+        process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || (() => { throw new Error('NEXT_PUBLIC_N8N_WEBHOOK_URL is not defined'); })(),
+        {
           users: typedSession?.id,
-          webhook_url: null,
-          is_active: true,
-          state: 'Disconnected',
         },
-      };
-      await axios.post(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances`, postData, {
-        headers: {
-          Authorization: `Bearer ${typedSession?.jwt}`,
-          'Content-Type': 'application/json',
-        },
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${typedSession?.jwt}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      toast.success('Nueva instancia creada con éxito');
     } catch (error: any) {
-      console.error('Error al crear la instancia:', error.response?.data || error.message);
+      console.error('Error al crear nueva instancia:', error.response?.data || error.message);
+      toast.error('Error al crear nueva instancia');
     }
   };
+
+
+
 
   // const deleteInstance = async (documentId: string) => {
   //   if (!confirm('¿Estás seguro de que quieres eliminar esta instancia?')) return;

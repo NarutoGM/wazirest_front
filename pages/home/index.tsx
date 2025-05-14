@@ -93,7 +93,7 @@ function DashboardContent() {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances`, {
         headers: { Authorization: `Bearer ${typedSession?.jwt}` },
         params: {
-          'filters[users][id][$eq]': typedSession?.id,
+          'filters[user][id][$eq]': typedSession?.id,
           populate: '*',
         },
       });
@@ -101,7 +101,7 @@ function DashboardContent() {
       const fetchedSessions: WhatsAppSession[] = res.data.data.map((item: any) => ({
         id: item.id,
         documentId: item.documentId,
-        user: item.users[0]?.id || typedSession?.id,
+        user: item.user.id || typedSession?.id,
         webhook_url: item.webhook_url || null,
         state: item.state,
         is_active: item.is_active,
