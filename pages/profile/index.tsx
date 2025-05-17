@@ -142,7 +142,7 @@ function UpdateUserPage() {
             </div>
             <button
               onClick={generateKey}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition flex items-center space-x-1"
+              className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 transition flex items-center space-x-1"
             >
               <KeyIcon className="w-5 h-5" />
               <span>Generar</span>
@@ -152,7 +152,7 @@ function UpdateUserPage() {
 
         <button
           onClick={handleSave}
-          className="bg-green-600 text-white px-4 py-2 w-full rounded-md hover:bg-green-700 transition mt-4"
+          className="bg-emerald-600 text-white px-4 py-2 w-full rounded-md hover:bg-emerald-700 transition mt-4"
         >
           Guardar
         </button>

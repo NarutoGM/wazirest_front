@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Sidebard from '../components/dashboard/index';
+import Helpme from '../components/instances/helpme';
+import Image from 'next/image';
+
 import { PauseIcon, PlayIcon, XMarkIcon, PowerIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { Toaster, toast } from 'sonner';
 import useSWR from 'swr';
@@ -81,13 +84,13 @@ function DashboardContent() {
   const { data: fetchedSessions, error, isLoading: loadingSessions } = useSWR(
     typedSession?.jwt
       ? [
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances?filters[user][id][$eq]=${typedSession.id}`,
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances?filters[user][id][$eq]=${typedSession.id}&sort=id:desc`,
         typedSession.jwt,
       ]
       : null,
     ([url, token]) => fetcher(url, token),
     {
-      refreshInterval: 1000, // 1 segundos
+      refreshInterval: 1000, // 1 segundo
     }
   );
 
@@ -335,82 +338,85 @@ function DashboardContent() {
     <div className="">
       <Toaster richColors position="top-right" />
 
-      <div className="p-5 mx-auto">
-        <h1 className="text-2xl font-bold text-white mb-6">Bienvenido, {username}</h1>
 
-        <div className="mb-5">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-white">Tus Sesiones</h2>
-            <button
-              onClick={createNewInstance}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
-            >
-              + Nueva Instancia
-            </button>
-          </div>
+      <div className="flex">
 
-          {error && <p className="text-red-500 mb-4">{error.message || 'Error al cargar las sesiones.'}</p>}
+        <div className="p-5 mx-auto">
+          <h1 className="text-2xl font-bold text-white mb-6">Bienvenido, {username}</h1>
 
-          {loadingSessions ? (
-            <p className="text-zinc-400">Cargando sesiones...</p>
-          ) : sessions.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
-              {sessions.map((session) => (
-                <div
-                  key={session.documentId}
-                  className="bg-zinc-800 rounded-lg shadow-md p-3 border border-zinc-700"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={profiles[session.documentId]?.profilePicUrl ?? '/logo/profile.png'}
-                        alt="Profile"
-                        className="w-16 h-16 border-4 border-green-500 rounded-full object-cover shadow-lg"
-                        onError={(e) => (e.currentTarget.src = '/logo/profile.png')}
-                      />
-                      <div>
-                        <h3 className="text-lg font-semibold text-white">
-                          {profiles[session.documentId]?.name || 'Instancia'}
-                        </h3>
-                        <p className="text-sm text-zinc-400">
-                          {profiles[session.documentId]?.number || 'Número no disponible'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${{
-                          Initializing: 'bg-yellow-100 text-yellow-800',
-                          Connected: 'bg-green-100 text-green-800',
-                          Failure: 'bg-orange-100 text-orange-800',
-                          Disconnected: 'bg-red-100 text-red-800',
-                        }[session.state] || 'bg-gray-100 text-gray-800'
-                          }`}
-                      >
-                        {session.state}
-                      </span>
-                      {session.state === 'Connected' && (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => toggleInstanceActive(session.documentId, session.is_active)}
-                            className={`flex items-center justify-center w-8 h-8 rounded-full transition ${session.is_active
-                              ? 'bg-green-600 hover:bg-green-700 text-white'
-                              : 'bg-gray-600 hover:bg-gray-700 text-white'
-                              }`}
-                            title={session.is_active ? 'Pausar instancia' : 'Activar instancia'}
-                          >
-                            {session.is_active ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
-                          </button>
-                          <button
-                            onClick={() => DisconnectInstance(session.documentId)}
-                            className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white transition"
-                            title="Desconectar instancia"
-                          >
-                            <PowerIcon className="w-5 h-5" />
-                          </button>
+          <div className="mb-5">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-white">Tus Sesiones</h2>
+              <button
+                onClick={createNewInstance}
+                className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+              >
+                + Nueva Instancia
+              </button>
+            </div>
+
+            {error && <p className="text-red-500 mb-4">{error.message || 'Error al cargar las sesiones.'}</p>}
+
+            {loadingSessions ? (
+              <p className="text-zinc-400">Cargando sesiones...</p>
+            ) : sessions.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
+                {sessions.map((session) => (
+                  <div
+                    key={session.documentId}
+                    className="bg-zinc-900/50 rounded-lg shadow-md shadow-emerald-800 p-3 border border-zinc-700"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={profiles[session.documentId]?.profilePicUrl ?? '/logo/profile.png'}
+                          alt="Profile"
+                          className="w-16 h-16 border-4 border-emerald-500 rounded-full object-cover shadow-lg"
+                          onError={(e) => (e.currentTarget.src = '/logo/profile.png')}
+                        />
+                        <div>
+                          <h3 className="text-lg font-semibold text-white">
+                            {profiles[session.documentId]?.name || 'Instancia'}
+                          </h3>
+                          <p className="text-sm text-zinc-400">
+                            {profiles[session.documentId]?.number || 'Número no disponible'}
+                          </p>
                         </div>
-                      )}
-                      {/* {session.state === 'Failure' && (
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${{
+                            Initializing: 'bg-yellow-100 text-yellow-800',
+                            Connected: 'bg-emerald-100 text-emerald-800',
+                            Failure: 'bg-orange-100 text-orange-800',
+                            Disconnected: 'bg-red-100 text-red-800',
+                          }[session.state] || 'bg-gray-100 text-gray-800'
+                            }`}
+                        >
+                          {session.state}
+                        </span>
+                        {session.state === 'Connected' && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => toggleInstanceActive(session.documentId, session.is_active)}
+                              className={`flex items-center justify-center w-8 h-8 rounded-full transition ${session.is_active
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                : 'bg-gray-600 hover:bg-gray-700 text-white'
+                                }`}
+                              title={session.is_active ? 'Pausar instancia' : 'Activar instancia'}
+                            >
+                              {session.is_active ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5" />}
+                            </button>
+                            <button
+                              onClick={() => DisconnectInstance(session.documentId)}
+                              className="flex items-center justify-center w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white transition"
+                              title="Desconectar instancia"
+                            >
+                              <PowerIcon className="w-5 h-5" />
+                            </button>
+                          </div>
+                        )}
+                        {/* {session.state === 'Failure' && (
                         <button
                           onClick={() => deleteInstance(session.documentId)}
                           className="text-red-500 hover:text-red-700"
@@ -419,117 +425,143 @@ function DashboardContent() {
                           <XMarkIcon className="w-5 h-5 font-bold" />
                         </button>
                       )} */}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <p className="text-zinc-400">
-                        <span className="font-bold">ClientId:</span> {session.documentId}
-                      </p>
-                      {session.state === 'Connected' && (
-                        <button
-                          onClick={() => ConfigInstance(session.documentId)}
-                          className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 hover:bg-slate-700 text-white transition"
-                          title="Configura tu weebhook"
-                        >
-                          <Cog6ToothIcon className="w-5 h-5" />
-                        </button>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="text-zinc-400 font-medium block mb-1">Webhook:</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={webhookInputs[session.documentId] || ''}
-                          onChange={(e) => handleWebhookChange(session.documentId, e.target.value)}
-                          placeholder="https://ejemplo.com/webhook"
-                          className="p-2 w-full text-zinc-400 bg-zinc-900 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                        <button
-                          onClick={() => updateWebhook(session.documentId)}
-                          className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition"
-                        >
-                          Guardar
-                        </button>
                       </div>
                     </div>
 
-
-
-                    {session.state === 'Disconnected' && (
-
-
-
-
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <p className="text-zinc-400">
+                          <span className="font-bold">ClientId:</span> {session.documentId}
+                        </p>
+                        {session.state === 'Connected' && (
+                          <button
+                            onClick={() => ConfigInstance(session.documentId)}
+                            className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-600 hover:bg-slate-700 text-white transition"
+                            title="Configura tu weebhook"
+                          >
+                            <Cog6ToothIcon className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
 
                       <div>
-
-
-
-
-
-
-{session.qr ? (
-  <>
-    <label className="text-zinc-400 font-medium block mb-1">Escanea este QR:</label>
-    <img
-      src={session.qr}
-      alt="WhatsApp QR"
-      className="w-32 h-32 mx-auto"
-      onError={(e) => console.error('Error al cargar QR:', e)}
-    />
-    <p className="text-xs text-zinc-400 mt-2 text-center">
-      Escanea con WhatsApp / Ajustes / Dispositivos vinculados
-    </p>
-  </>
-) : session.qr_loading ? (
-  <div className="flex justify-center items-center">
-    <span className="text-zinc-400 text-sm">Generando QR...</span>
-    {/* Puedes agregar un spinner animado si lo deseas */}
-    <svg className="animate-spin h-5 w-5 ml-2 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
-  </div>
-) : (
-  <div className="flex justify-center items-center">
-    <button
-      onClick={async () => {
-        await fetchQrsForDisconnectedSessions(session.documentId);
-      }}
-      className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition"
-    >
-      Genera un nuevo QR
-    </button>
-  </div>
-)}
-
-
-
-
+                        <label className="text-zinc-400 font-medium block mb-1">Webhook:</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={webhookInputs[session.documentId] || ''}
+                            onChange={(e) => handleWebhookChange(session.documentId, e.target.value)}
+                            placeholder="https://ejemplo.com/webhook"
+                            className="p-2 w-full text-zinc-400 bg-zinc-900 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                          />
+                          <button
+                            onClick={() => updateWebhook(session.documentId)}
+                            className="bg-emerald-600 text-white px-3 py-2 rounded-md hover:bg-emerald-700 transition"
+                          >
+                            Guardar
+                          </button>
+                        </div>
                       </div>
 
 
-                    )}
+
+                      {session.state === 'Disconnected' && (
 
 
 
+
+
+                        <div>
+
+
+
+
+
+
+                          {session.qr ? (
+                            <>
+                              <label className="text-zinc-400 font-medium block mb-1">Escanea este QR:</label>
+                              <Image
+
+                                width={400}
+                                height={400}
+                                src={session.qr}
+                                alt="WhatsApp QR"
+                                className="w-48 h-48 mx-auto"
+                                onError={(e) => console.error('Error al cargar QR:', e)}
+                              />
+
+
+                              <p className="text-xs text-zinc-400 mt-2 text-center">
+                                Escanea con WhatsApp / Ajustes / Dispositivos vinculados
+                              </p>
+                            </>
+                          ) : session.qr_loading ? (
+                            <div className="flex justify-center items-center">
+                              <span className="text-zinc-400 text-sm">Generando QR...</span>
+                              {/* Puedes agregar un spinner animado si lo deseas */}
+                              <svg className="animate-spin h-5 w-5 ml-2 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <div className="flex justify-center items-center">
+                              <button
+                                onClick={async () => {
+                                  await fetchQrsForDisconnectedSessions(session.documentId);
+                                }}
+                                className="bg-emerald-600 text-white px-3 py-2 rounded-md hover:bg-emerald-700 transition"
+                              >
+                                Genera un nuevo QR
+                              </button>
+                            </div>
+                          )}
+
+
+
+
+                        </div>
+
+
+                      )}
+
+
+
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-zinc-400">No tienes sesiones aún. Crea una nueva instancia.</p>
-          )}
+                ))}
+              </div>
+            ) : (
+              <p className="text-zinc-400">No tienes sesiones aún. Crea una nueva instancia.</p>
+            )}
+
+
+
+
+          </div>
+
+
+          <div>
+            <p className="text-zinc-400 mt-4">
+              Si tienes problemas con la conexión, asegúrate de que antes de escanear el QR se haya cerrado todas las sesiones activas de WhatsApp Web en tu teléfono. Al menos hasta que la conexión se priorice.
+            </p>
+
+          </div>
         </div>
+
+        <Helpme>
+
+        </Helpme>
+
+
+
       </div>
+
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-zinc/40 bg-opacity-50 shadow-md flex items-center justify-center z-50">
-          <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-6 w-full max-w-md">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-white">Configurar Webhook</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-zinc-400 hover:text-white">
@@ -575,7 +607,7 @@ function DashboardContent() {
               </button>
               <button
                 onClick={saveWebhookSettings}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+                className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
               >
                 Guardar
               </button>

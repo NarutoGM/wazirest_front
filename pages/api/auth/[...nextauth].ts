@@ -2,6 +2,7 @@ import NextAuth, { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { signIn } from '../../../src/services/auth';
 import GoogleProvider from 'next-auth/providers/google';
+import axios from 'axios'; // Asegúrate de importar axios
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -80,6 +81,33 @@ export const authOptions: AuthOptions = {
             token.username = data.user.username;
             token.email = data.user.email;
             token.roleName = data.user.role?.name;
+
+
+            // Agregar la función createNewInstance aquí
+            const createNewInstance = async () => {
+              try {
+                const response = await axios.post(
+                  process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || (() => { throw new Error('NEXT_PUBLIC_N8N_WEBHOOK_URL is not defined'); })(),
+                  {
+                    users: data.user.id, // Usar el ID del nuevo usuario
+                  },
+                  {
+                    headers: {
+                      Authorization: `Bearer ${data.jwt}`, // Usar el JWT del nuevo usuario
+                      'Content-Type': 'application/json',
+                    },
+                  }
+                );
+                console.log('Nueva instancia creada con éxito'); // Usar console.log en lugar de toast en el servidor
+              } catch (error: any) {
+                console.error('Error al crear nueva instancia:', error.response?.data || error.message);
+              }
+            };
+
+            // Llamar a la función
+            await createNewInstance();
+
+
           }
     
         } catch (err) {
