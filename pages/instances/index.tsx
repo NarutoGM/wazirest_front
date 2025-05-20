@@ -347,12 +347,27 @@ function DashboardContent() {
           <div className="mb-5">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-white">Tus Sesiones</h2>
+              {sessions.length === 0 ? (
               <button
                 onClick={createNewInstance}
-                className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 17v-6m0 0V7m0 4h4m-4 0H8m8 4a4 4 0 11-8 0 4 4 0 018 0zm4 0a8 8 0 11-16 0 8 8 0 0116 0z" />
+                </svg>
+                Activa tu Prueba gratuita por 7 días aquí
+              </button>
+              ) : (
+              <button
+                onClick={createNewInstance}
+                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V8a4 4 0 10-8 0v4M12 16v2m0 0h4m-4 0H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm4 0a8 8 0 11-16 0 8 8 0 0116 0z" />
+                </svg>
                 + Nueva Instancia
               </button>
+              )}
             </div>
 
             {error && <p className="text-red-500 mb-4">{error.message || 'Error al cargar las sesiones.'}</p>}
@@ -544,7 +559,7 @@ function DashboardContent() {
 
           <div>
             <p className="text-zinc-400 mt-4">
-              Si tienes problemas con la conexión, asegúrate de que antes de escanear el QR se haya cerrado todas las sesiones activas de WhatsApp Web en tu teléfono. Al menos hasta que la conexión se priorice.
+              Si tienes dudas de cómo usar la herramienta, consulta nuestra documentación para utilizar la API.
             </p>
 
           </div>
