@@ -52,6 +52,7 @@ interface WhatsAppSession {
   }[];
   name?: string;
   profilePicUrl?: string | null;
+  number?: string | null; 
 }
 
 function DashboardContent() {
@@ -62,7 +63,7 @@ function DashboardContent() {
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
   const [historyData, setHistoryData] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<{
-    [key: string]: { name?: string; profilePicUrl?: string | null };
+    [key: string]: { name?: string; profilePicUrl?: string ;number?:string };
   }>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
@@ -90,18 +91,13 @@ function DashboardContent() {
   const fetchUserSessions = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances`, {
-        headers: { Authorization: `Bearer ${typedSession?.jwt}` },
-        params: {
-          'filters[user][id][$eq]': typedSession?.id,
-          populate: '*',
-        },
-      });
+      const res = await axios.get(`/api/instances?userId=${typedSession?.id}`);
+
+      console.log(res.data.data);
 
       const fetchedSessions: WhatsAppSession[] = res.data.data.map((item: any) => ({
         id: item.id,
         documentId: item.documentId,
-        user: item.user.id || typedSession?.id,
         webhook_url: item.webhook_url || null,
         state: item.state,
         is_active: item.is_active,
@@ -130,9 +126,10 @@ function DashboardContent() {
     }
   };
 
-  const fetchProfileData = async (documentId: string) => {
+
+const fetchProfileData = async (documentId: string) => {
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/profile/${documentId}`, {
+      const res = await axios.get(`/api/instances/profile/${documentId}`, {
         headers: { 'Content-Type': 'application/json' },
       });
       setProfiles((prev) => ({
@@ -140,16 +137,19 @@ function DashboardContent() {
         [documentId]: {
           name: res.data.name,
           profilePicUrl: res.data.profilePicUrl,
+          number: res.data.number,
         },
       }));
     } catch (error: any) {
       console.error(`Error fetching profile for ${documentId}:`, error.response?.data || error.message);
       setProfiles((prev) => ({
         ...prev,
-        [documentId]: { name: 'Unknown', profilePicUrl: null },
+        [documentId]: { name: ' ', profilePicUrl: ' ', number: ' ' },
       }));
     }
   };
+
+
 
   const handleInstanceSelect = (documentId: string) => {
     setSelectedInstanceId(documentId);
@@ -273,8 +273,10 @@ function DashboardContent() {
                   <span className="text-white">
                     {selectedInstance?.documentId || 'Select an instance'}{' '}
                     {selectedInstance?.state === 'Connected' && selectedProfile?.name
-                      ? `(${selectedProfile.name})`
+                      ? `(${selectedProfile.name} - ${selectedProfile.number})`
                       : ''}
+
+            
                   </span>
                 </div>
                 <ChevronDownIcon
@@ -303,7 +305,7 @@ function DashboardContent() {
                         <div>
                           <span className="text-white">{instance.documentId}</span>
                           {instance.state === 'Connected' && profile?.name && (
-                            <span className="text-zinc-400 text-sm block">{profile.name}</span>
+                            <span className="text-zinc-400 text-sm block">{profile.name} - {profile.number}</span>
                           )}
                         </div>
                         <span

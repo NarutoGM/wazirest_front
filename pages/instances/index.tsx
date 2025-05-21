@@ -13,7 +13,6 @@ import useSWR from 'swr';
 
 interface CustomSession {
   id?: string;
-  jwt?: string;
   firstName?: string;
 }
 
@@ -41,8 +40,6 @@ function DashboardContent() {
   const router = useRouter();
   const [sessions, setSessions] = useState<WhatsAppSession[]>([]);
   const [webhookInputs, setWebhookInputs] = useState<{ [key: string]: string }>({});
-  const [qrCodes, setQrCodes] = useState<{ [key: string]: string }>({});
-  const [loadingQrs, setLoadingQrs] = useState<{ [key: string]: boolean }>({});
   const [profiles, setProfiles] = useState<{ [key: string]: { name?: string; profilePicUrl?: string | null; number?: string | null } }>({});
 
   const [webhookSettings, setWebhookSettings] = useState<{
@@ -82,15 +79,12 @@ function DashboardContent() {
 
   // Fetch user sessions using SWR
   const { data: fetchedSessions, error, isLoading: loadingSessions } = useSWR(
-    typedSession?.jwt
-      ? [
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances?filters[user][id][$eq]=${typedSession.id}&sort=id:desc`,
-        typedSession.jwt,
-      ]
+    typedSession?.id
+      ? `/api/instances?userId=${typedSession.id}`
       : null,
-    ([url, token]) => fetcher(url, token),
+    (url) => fetcher(url, ''),
     {
-      refreshInterval: 1000, // 1 segundo
+      refreshInterval: 2000, // 1 segundo
     }
   );
 
@@ -125,46 +119,35 @@ function DashboardContent() {
     }
   }, [status, router]);
 
-  const fetchQrsForDisconnectedSessions = async (documentId: string) => {
-    // Filtrar solo la sesión que coincide con el documentId
+const fetchQrsForDisconnectedSessions = async (documentId: string) => {
     const disconnectedSession = sessions.find(
       (session) => session.state === 'Disconnected' && session.is_active && session.documentId === documentId
     );
 
-    // Si no hay sesión válida, salir temprano
     if (!disconnectedSession) {
       console.warn(`No disconnected session found for documentId: ${documentId}`);
       return;
     }
 
-    // Establecer estado de carga para el documentId específico
-
     try {
       await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/generate-qr`,
+        '/api/instances/qr',
         { clientId: documentId },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: {'Content-Type': 'application/json' } }
       );
-
-
     } catch (err: any) {
       console.error(`Error fetching QR for ${documentId}:`, err.response?.data || err.message);
-    } finally {
-      setLoadingQrs((prev) => ({ ...prev, [documentId]: false }));
     }
   };
 
 
-  const createNewInstance = async () => {
+const createNewInstance = async () => {
     try {
-      const response = await axios.post(
-        process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || (() => { throw new Error('NEXT_PUBLIC_N8N_WEBHOOK_URL is not defined'); })(),
-        {
-          users: typedSession?.id,
-        },
+      await axios.post(
+        '/api/instances',
+        { users: typedSession?.id },
         {
           headers: {
-            Authorization: `Bearer ${typedSession?.jwt}`,
             'Content-Type': 'application/json',
           },
         }
@@ -177,58 +160,25 @@ function DashboardContent() {
   };
 
 
-
-
-  // const deleteInstance = async (documentId: string) => {
-  //   if (!confirm('¿Estás seguro de que quieres eliminar esta instancia?')) return;
-
-  //   try {
-  //     await axios.delete(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances/${documentId}`, {
-  //       headers: { Authorization: `Bearer ${typedSession?.jwt}` },
-  //     });
-
-  //     await axios.post(
-  //       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/delete-session/${documentId}`,
-  //       {},
-  //       {
-  //         headers: { 'Content-Type': 'application/json' },
-  //       }
-  //     );
-  //   } catch (error: any) {
-  //     console.error('Error al eliminar la instancia:', error.response?.data || error.message);
-  //   }
-  // };
-
-  const updateWebhook = async (documentId: string) => {
+const updateWebhook = async (documentId: string) => {
     try {
       const webhookUrl = webhookInputs[documentId];
       await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances/${documentId}`,
-        {
-          data: { webhook_url: webhookUrl },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${typedSession?.jwt}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/update-weebhook/${documentId}`,
-        { webhook_url: webhookUrl },
+        `/api/instances?documentId=${documentId}`,
+        { data: { webhook_url: webhookUrl } },
         {
           headers: {
             'Content-Type': 'application/json',
           },
         }
       );
-
       toast.success('Webhook actualizado con éxito');
     } catch (error: any) {
       console.error('Error al actualizar el webhook:', error.response?.data || error.message);
     }
   };
+
+
 
   const handleWebhookChange = (documentId: string, value: string) => {
     setWebhookInputs((prev) => ({
@@ -237,9 +187,9 @@ function DashboardContent() {
     }));
   };
 
-  const fetchProfileData = async (documentId: string) => {
+const fetchProfileData = async (documentId: string) => {
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/profile/${documentId}`, {
+      const res = await axios.get(`/api/instances/profile/${documentId}`, {
         headers: { 'Content-Type': 'application/json' },
       });
       setProfiles((prev) => ({
@@ -254,22 +204,19 @@ function DashboardContent() {
       console.error(`Error fetching profile for ${documentId}:`, error.response?.data || error.message);
       setProfiles((prev) => ({
         ...prev,
-        [documentId]: { name: 'Unknown', profilePicUrl: null, number: null },
+        [documentId]: { name: ' ', profilePicUrl: ' ', number: ' ' },
       }));
     }
   };
 
-  const toggleInstanceActive = async (documentId: string, currentActiveState: boolean) => {
+const toggleInstanceActive = async (documentId: string, currentActiveState: boolean) => {
     try {
       const newActiveState = !currentActiveState;
       await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances/${documentId}`,
-        {
-          data: { is_active: newActiveState },
-        },
+        `/api/instances?documentId=${documentId}`,
+        { data: { is_active: newActiveState } },
         {
           headers: {
-            Authorization: `Bearer ${typedSession?.jwt}`,
             'Content-Type': 'application/json',
           },
         }
@@ -280,10 +227,10 @@ function DashboardContent() {
     }
   };
 
-  const DisconnectInstance = async (documentId: string) => {
+const DisconnectInstance = async (documentId: string) => {
     try {
       await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/disconnect-session/${documentId}`,
+        `/api/instances/disconnect/${documentId}`,
         {},
         {
           headers: { 'Content-Type': 'application/json' },
@@ -309,11 +256,12 @@ function DashboardContent() {
     }
   };
 
-  const saveWebhookSettings = async () => {
+
+const saveWebhookSettings = async () => {
     if (!selectedDocumentId) return;
     try {
       await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances/${selectedDocumentId}`,
+        `/api/instances?documentId=${selectedDocumentId}`,
         {
           data: {
             message_received: webhookSettings.message_received,
@@ -322,7 +270,6 @@ function DashboardContent() {
         },
         {
           headers: {
-            Authorization: `Bearer ${typedSession?.jwt}`,
             'Content-Type': 'application/json',
           },
         }
@@ -334,6 +281,8 @@ function DashboardContent() {
       toast.error('Error al actualizar configuración de webhook');
     }
   };
+
+
   return (
     <div className="">
       <Toaster richColors position="top-right" />
