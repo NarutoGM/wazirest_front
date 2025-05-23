@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import wazone from '../../../public/logo/wallpaper-wazone.png';
-import fondo from '../../../public/img/fondo.png';
+import fondo from '../../../public/img/fondo.webp';
 import fondo_transparent from '../../../public/logo/wazilrest_white.png';
 import { Toaster, toast } from 'sonner'; // Import Sonner
 
