@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import axios from 'axios';
 import { Toaster, toast } from 'sonner'; // Import Sonner
-import wazone from '../../../public/logo/wallpaper-wazone.png';
+import wazone from '../../../public/logo/wallpaper-wazone.webp';
 import fondo from '../../../public/img/fondo.webp';
 import fondo_transparent from '../../../public/logo/wazilrest_white.png';
 import router from 'next/router';
