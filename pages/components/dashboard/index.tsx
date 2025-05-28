@@ -15,6 +15,7 @@ import {
   ServerIcon,
   UserIcon,
   BriefcaseIcon,
+  WrenchScrewdriverIcon,
   InboxIcon,
   DocumentTextIcon,
   ChevronLeftIcon,
@@ -78,8 +79,10 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
     { name: 'Subscription', icon: <InboxIcon className="w-7 h-7 text-gray-200" />, path: '/subscription', action: () => handleNavigation('/subscription') },
     { name: 'Documentations', icon: <DocumentTextIcon className="w-7 h-7 text-gray-200" />, path: '/docs', action: () => handleNavigation('/docs') },
     { name: 'Workspace', icon: <BriefcaseIcon className="w-7 h-7 text-gray-200" />, path: '/workspace', action: () => handleNavigation('/workspace') },
+    { name: 'Tools', icon: <WrenchScrewdriverIcon className="w-7 h-7 text-gray-200" />, path: '/tool', action: () => handleNavigation('/tool') },
     { name: 'Logout', icon: <ArrowLeftOnRectangleIcon className="w-7 h-7 text-gray-200" />, path: '/login', action: handleLogout },
   ];
+  
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -150,14 +153,22 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
                     item.icon
                   )}
                 </div>
+
+
+
+
                 {isCollapsed && !isMobile && (
                   <div
-                    className={`absolute left-full ml-2 top-1/2 transform -tranzinc-y-1/2 hidden group-hover:block ${item.name === 'Logout' ? 'bg-red-800' : 'bg-emerald-700'
+                    className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 hidden group-hover:block ${item.name === 'Logout' ? 'bg-red-800' : 'bg-emerald-700'
                       } text-white text-sm px-3 py-1 rounded-md shadow-lg z-10`}
+                    style={{ minWidth: '90px', justifyContent: 'center' }}
                   >
                     {item.name}
                   </div>
                 )}
+
+
+                
 
                 {!isCollapsed && (
                   <div className="flex items-center h-full">
