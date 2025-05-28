@@ -14,6 +14,7 @@ import {
   HomeIcon,
   ServerIcon,
   UserIcon,
+  BriefcaseIcon,
   InboxIcon,
   DocumentTextIcon,
   ChevronLeftIcon,
@@ -76,6 +77,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
     { name: 'Profile', icon: <UserIcon className="w-7 h-7 text-gray-200" />, path: '/profile', action: () => handleNavigation('/profile') },
     { name: 'Subscription', icon: <InboxIcon className="w-7 h-7 text-gray-200" />, path: '/subscription', action: () => handleNavigation('/subscription') },
     { name: 'Documentations', icon: <DocumentTextIcon className="w-7 h-7 text-gray-200" />, path: '/docs', action: () => handleNavigation('/docs') },
+    { name: 'Workspace', icon: <BriefcaseIcon className="w-7 h-7 text-gray-200" />, path: '/workspace', action: () => handleNavigation('/workspace') },
     { name: 'Logout', icon: <ArrowLeftOnRectangleIcon className="w-7 h-7 text-gray-200" />, path: '/login', action: handleLogout },
   ];
 
