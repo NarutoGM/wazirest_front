@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         }
       );
       return res.status(200).json(response.data);
-        } else if (method === 'PUT') {
+    } else if (method === 'PUT') {
       // Update webhook or instance
       const { documentId } = query;
       const response = await axios.put(
@@ -46,29 +46,38 @@ export default async function handler(req, res) {
         body,
         {
           headers: {
-        Authorization: `Bearer ${token_update}`,
-        'Content-Type': 'application/json',
+            Authorization: `Bearer ${token_update}`,
+            'Content-Type': 'application/json',
           },
         }
       );
 
 
-            // Extraer webhook_url correctamente del body
-            const webhookUrl = body.data.webhook_url;
-            console.log(webhookUrl);
+      // Extraer webhook_url correctamente del body
+      const webhookUrl = body.data.webhook_url;
 
-      await axios.post(
-        `${BACKEND_URL}/api/update-weebhook/${documentId}`,
-        { webhook_url: webhookUrl },
-        {
-          headers: {
-        'Content-Type': 'application/json',
-          },
-        }
-      );
+      console.log("probando" + webhookUrl)
+      if (webhookUrl === undefined) {
+        return res.status(200).json(response.data);
+      } else {
 
-      return res.status(200).json(response.data);
-        }
+        await axios.post(
+          `${BACKEND_URL}/api/update-weebhook/${documentId}`,
+          { webhook_url: webhookUrl },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        return res.status(200).json(response.data);
+
+
+      }
+
+
+    }
     // Add other methods (DELETE, etc.) as needed
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
@@ -79,22 +88,22 @@ export default async function handler(req, res) {
   }
 }
 
-  // const deleteInstance = async (documentId: string) => {
-  //   if (!confirm('¿Estás seguro de que quieres eliminar esta instancia?')) return;
+// const deleteInstance = async (documentId: string) => {
+//   if (!confirm('¿Estás seguro de que quieres eliminar esta instancia?')) return;
 
-  //   try {
-  //     await axios.delete(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances/${documentId}`, {
-  //       headers: { Authorization: `Bearer ${typedSession?.jwt}` },
-  //     });
+//   try {
+//     await axios.delete(`${process.env.NEXT_PUBLIC_STRAPI_URL}/api/instances/${documentId}`, {
+//       headers: { Authorization: `Bearer ${typedSession?.jwt}` },
+//     });
 
-  //     await axios.post(
-  //       `${process.env.BACKEND_URL}/api/delete-session/${documentId}`,
-  //       {},
-  //       {
-  //         headers: { 'Content-Type': 'application/json' },
-  //       }
-  //     );
-  //   } catch (error: any) {
-  //     console.error('Error al eliminar la instancia:', error.response?.data || error.message);
-  //   }
-  // };
+//     await axios.post(
+//       `${process.env.BACKEND_URL}/api/delete-session/${documentId}`,
+//       {},
+//       {
+//         headers: { 'Content-Type': 'application/json' },
+//       }
+//     );
+//   } catch (error: any) {
+//     console.error('Error al eliminar la instancia:', error.response?.data || error.message);
+//   }
+// };
