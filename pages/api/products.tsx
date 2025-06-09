@@ -3,9 +3,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req;
 
-  const WOOCOMMERCE_URL = 'https://wazilrest-wordpress.xwk85y.easypanel.host/wp-json/wc/v3/products';
-  const CONSUMER_KEY = 'ck_a8f50879a8a813589ded250cca92d4bd2cdd8ca5';
-  const CONSUMER_SECRET = 'cs_48437d88efa8e6a46ca3f53b2f54c8f0b1a6fd00';
+const WOOCOMMERCE_URL = process.env.NEXT_PUBLIC_WOOCOMMERCE_URL;
+const CONSUMER_KEY = process.env.WOOCOMMERCE_CONSUMER_KEY;
+const CONSUMER_SECRET = process.env.WOOCOMMERCE_CONSUMER_SECRET;
 
   try {
     if (method === 'GET') {
