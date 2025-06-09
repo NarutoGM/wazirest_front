@@ -7,9 +7,10 @@ import Sidebard from '../components/dashboard/index';
 import Helpme from '../components/instances/helpme';
 import Image from 'next/image';
 
-import { PauseIcon, PlayIcon, XMarkIcon, PowerIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { PauseIcon, PlayIcon, XMarkIcon, PowerIcon, Cog6ToothIcon, SparklesIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { Toaster, toast } from 'sonner';
 import useSWR from 'swr';
+import SidebarComponent from '../components/SidebarComponent';
 
 interface CustomSession {
   id?: string;
@@ -41,6 +42,13 @@ function DashboardContent() {
   const [sessions, setSessions] = useState<WhatsAppSession[]>([]);
   const [webhookInputs, setWebhookInputs] = useState<{ [key: string]: string }>({});
   const [profiles, setProfiles] = useState<{ [key: string]: { name?: string; profilePicUrl?: string | null; number?: string | null } }>({});
+
+
+
+
+
+
+
 
   const [webhookSettings, setWebhookSettings] = useState<{
     message_received: boolean;
@@ -119,7 +127,7 @@ function DashboardContent() {
     }
   }, [status, router]);
 
-const fetchQrsForDisconnectedSessions = async (documentId: string) => {
+  const fetchQrsForDisconnectedSessions = async (documentId: string) => {
     const disconnectedSession = sessions.find(
       (session) => session.state === 'Disconnected' && session.is_active && session.documentId === documentId
     );
@@ -133,7 +141,7 @@ const fetchQrsForDisconnectedSessions = async (documentId: string) => {
       await axios.post(
         '/api/instances/qr',
         { clientId: documentId },
-        { headers: {'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json' } }
       );
     } catch (err: any) {
       console.error(`Error fetching QR for ${documentId}:`, err.response?.data || err.message);
@@ -141,7 +149,7 @@ const fetchQrsForDisconnectedSessions = async (documentId: string) => {
   };
 
 
-const createNewInstance = async () => {
+  const createNewInstance = async () => {
     try {
       await axios.post(
         '/api/instances',
@@ -160,7 +168,7 @@ const createNewInstance = async () => {
   };
 
 
-const updateWebhook = async (documentId: string) => {
+  const updateWebhook = async (documentId: string) => {
     try {
       const webhookUrl = webhookInputs[documentId];
       await axios.put(
@@ -187,7 +195,7 @@ const updateWebhook = async (documentId: string) => {
     }));
   };
 
-const fetchProfileData = async (documentId: string) => {
+  const fetchProfileData = async (documentId: string) => {
     try {
       const res = await axios.get(`/api/instances/profile/${documentId}`, {
         headers: { 'Content-Type': 'application/json' },
@@ -209,7 +217,7 @@ const fetchProfileData = async (documentId: string) => {
     }
   };
 
-const toggleInstanceActive = async (documentId: string, currentActiveState: boolean) => {
+  const toggleInstanceActive = async (documentId: string, currentActiveState: boolean) => {
     try {
       const newActiveState = !currentActiveState;
       await axios.put(
@@ -227,7 +235,7 @@ const toggleInstanceActive = async (documentId: string, currentActiveState: bool
     }
   };
 
-const DisconnectInstance = async (documentId: string) => {
+  const DisconnectInstance = async (documentId: string) => {
     try {
       await axios.post(
         `/api/instances/disconnect/${documentId}`,
@@ -257,7 +265,7 @@ const DisconnectInstance = async (documentId: string) => {
   };
 
 
-const saveWebhookSettings = async () => {
+  const saveWebhookSettings = async () => {
     if (!selectedDocumentId) return;
     try {
       await axios.put(
@@ -290,34 +298,34 @@ const saveWebhookSettings = async () => {
 
       <div className="flex">
 
-        <div className="p-5 mx-auto">
+
+        <div className="p-5 w-7xl mx-auto">
           <h1 className="text-2xl font-bold text-white mb-6">Bienvenido, {username}</h1>
 
           <div className="mb-5">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-white">Tus Sesiones</h2>
               {sessions.length === 0 ? (
-              <button
-                onClick={createNewInstance}
-                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 17v-6m0 0V7m0 4h4m-4 0H8m8 4a4 4 0 11-8 0 4 4 0 018 0zm4 0a8 8 0 11-16 0 8 8 0 0116 0z" />
-                </svg>
-                Activa tu Prueba gratuita por 7 días aquí
-              </button>
+                <button
+                  onClick={createNewInstance}
+                  className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+                >
+                  <SparklesIcon className="w-5 h-5" />
+                  Activa tu Prueba gratuita por 7 días aquí
+                </button>
               ) : (
-              <button
-                onClick={createNewInstance}
-                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12V8a4 4 0 10-8 0v4M12 16v2m0 0h4m-4 0H8m8 0a4 4 0 11-8 0 4 4 0 018 0zm4 0a8 8 0 11-16 0 8 8 0 0116 0z" />
-                </svg>
-                + Nueva Instancia
-              </button>
+                <button
+                  onClick={createNewInstance}
+                  className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+                >
+                  <PlusIcon className="w-5 h-5" />
+
+                  Nueva Instancia
+                </button>
               )}
+
             </div>
+
 
             {error && <p className="text-red-500 mb-4">{error.message || 'Error al cargar las sesiones.'}</p>}
 
@@ -514,6 +522,8 @@ const saveWebhookSettings = async () => {
           </div>
         </div>
 
+
+
         <Helpme>
 
         </Helpme>
@@ -521,6 +531,7 @@ const saveWebhookSettings = async () => {
 
 
       </div>
+
 
 
       {isModalOpen && (
@@ -579,8 +590,13 @@ const saveWebhookSettings = async () => {
           </div>
         </div>
       )}
+
+
+
     </div>
   );
+
+
 }
 
 export default function Dashboard() {
