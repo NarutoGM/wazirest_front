@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Sidebard from '../components/dashboard/index';
 import { Toaster, toast } from 'sonner';
 import useSWR from 'swr';
-import SidebarComponent from '../components/SidebarComponent';
 
 interface CustomSession {
   id?: string;
