@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
+import { SessionProvider, useSession } from 'next-auth/react';
 
 interface WooCommerceProduct {
   id: number;
@@ -13,7 +14,12 @@ interface WooCommerceProduct {
 
 // ProductCard Component (unchanged)
 function ProductCard({ product }: { product: WooCommerceProduct }) {
-  const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/checkout/?add-to-cart=${product.id}`;
+  const { data: session, status } = useSession();
+ 
+
+const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/?clear_cart_and_add=${product.id}&email=${encodeURIComponent(session?.email ?? '')}`;
+  
+ // const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/checkout/?add-to-cart=${product.id}`;
   const imageUrl = product.images && product.images.length > 0 ? product.images[0].src : '/placeholder-image.jpg';
 
   return (
