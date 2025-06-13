@@ -92,7 +92,7 @@ function DashboardContent() {
       : null,
     (url) => fetcher(url, ''),
     {
-      refreshInterval: 2000, // 1 segundo
+      refreshInterval: 5000, // 1 segundo
     }
   );
 
