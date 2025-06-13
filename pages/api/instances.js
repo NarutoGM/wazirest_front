@@ -37,7 +37,17 @@ export default async function handler(req, res) {
           },
         }
       );
-      return res.status(200).json(response.data);
+
+      const { success, message } = response.data;
+
+      if (success) {
+        return res.status(200).json({ message });
+      } else {
+        return res.status(400).json({ message });
+      }
+
+
+
     } else if (method === 'PUT') {
       // Update webhook or instance
       const { documentId } = query;
@@ -56,7 +66,6 @@ export default async function handler(req, res) {
       // Extraer webhook_url correctamente del body
       const webhookUrl = body.data.webhook_url;
 
-      console.log("probando" + webhookUrl)
       if (webhookUrl === undefined) {
         return res.status(200).json(response.data);
       } else {

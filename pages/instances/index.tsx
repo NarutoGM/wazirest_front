@@ -163,8 +163,9 @@ function DashboardContent() {
       toast.success('Nueva instancia creada con éxito');
     } catch (error: any) {
       console.error('Error al crear nueva instancia:', error.response?.data || error.message);
-      toast.error('Error al crear nueva instancia');
+      toast.error(error.response?.data?.message || 'Error al crear nueva instancia');
     }
+
   };
 
 
