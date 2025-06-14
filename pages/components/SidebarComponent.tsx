@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import useSWR from 'swr';
-import { SessionProvider, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 
 interface WooCommerceProduct {
   id: number;
@@ -12,15 +11,14 @@ interface WooCommerceProduct {
   images: { src: string }[];
 }
 
-// ProductCard Component (unchanged)
+// ProductCard Component (unchanged except for placeholder image path)
 function ProductCard({ product }: { product: WooCommerceProduct }) {
-  const { data: session, status } = useSession();
- 
+  const { data: session } = useSession();
 
-const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/?clear_cart_and_add=${product.id}&email=${encodeURIComponent(session?.email ?? '')}`;
-  
- // const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/checkout/?add-to-cart=${product.id}`;
-  const imageUrl = product.images && product.images.length > 0 ? product.images[0].src : '/placeholder-image.jpg';
+  const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/?clear_cart_and_add=${product.id}&email=${encodeURIComponent(
+    session?.email ?? ''
+  )}`;
+  const imageUrl = product.images && product.images.length > 0 ? product.images[0].src : '/images/placeholder-image.jpg'; // Updated path
 
   return (
     <div className="p-4 border border-zinc-700 rounded-lg shadow-md shadow-cyan-800 bg-zinc-900/50 transition-all duration-300 hover:shadow-cyan-600 hover:scale-105 flex flex-col">
@@ -30,7 +28,7 @@ const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/?clear_ca
             src={imageUrl}
             alt={product.name}
             className="w-full h-full object-contain rounded-md"
-            onError={(e) => (e.currentTarget.src = '/placeholder-image.jpg')}
+            onError={(e) => (e.currentTarget.src = '/images/placeholder-image.jpg')} // Updated path
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/70 to-transparent rounded-md"></div>
         </div>
@@ -68,46 +66,51 @@ interface SidebarComponentProps {
   initialFilter: 'all' | 'plan' | 'no-plan';
 }
 
-export default function SidebarComponent({
-  isOpen,
-  onToggle,
-  initialFilter,
-}: SidebarComponentProps) {
+export default function SidebarComponent({ isOpen, onToggle, initialFilter }: SidebarComponentProps) {
   const [filterType, setFilterType] = useState<'all' | 'plan' | 'no-plan'>(initialFilter);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState<WooCommerceProduct[]>([]);
+  const [products, setProducts] = useState<WooCommerceProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Define the fetcher function for SWR
-  const fetcher = async (url: string) => {
-    const res = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!res.ok) {
-      throw new Error(`Error fetching products: ${res.status}`);
-    }
-    const data = await res.json();
-    // Transform WooCommerce API response to WooCommerceProduct format
-    return data.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      description: item.description.replace(/<[^>]+>/g, ''), // Strip HTML tags
-      permalink: item.permalink,
-      price: item.price,
-      images: item.images || [],
-    }));
-  };
+  // Fetch products when sidebar opens
+  useEffect(() => {
+    if (!isOpen) return; // Only fetch when sidebar is open
 
-  // Fetch products using SWR
-  const { data: products, error: productsError, isLoading: productsLoading } = useSWR<WooCommerceProduct[]>(
-    '/api/products',
-    fetcher,
-    {
-      refreshInterval: 5000, // Refresh every 5 seconds
-    }
-  );
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/products', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!res.ok) {
+          throw new Error(`Error fetching products: ${res.status}`);
+        }
+        const data = await res.json();
+        const transformedProducts = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description.replace(/<[^>]+>/g, ''),
+          permalink: item.permalink,
+          price: item.price,
+          images: item.images || [],
+        }));
+        setProducts(transformedProducts);
+      } catch (err: any) {
+        setError(err.message || 'Error al cargar productos.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
+    fetchProducts();
+  }, [isOpen]); // Only trigger when isOpen changes
+
+  // Handle filtering logic
   useEffect(() => {
     if (!products) return;
 
@@ -133,7 +136,7 @@ export default function SidebarComponent({
       className={`fixed top-0 right-0 h-full w-xl bg-zinc-900/95 backdrop-blur-md p-8 shadow-lg transform transition-transform duration-500 ease-in-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       } overflow-y-auto`}
-      onMouseLeave={() => isOpen && onToggle()} // Close sidebar when mouse leaves
+      onMouseLeave={() => isOpen && onToggle()}
     >
       <button
         onClick={onToggle}
@@ -159,11 +162,11 @@ export default function SidebarComponent({
           className="w-full p-2 rounded bg-zinc-800 text-white border border-zinc-700 focus:outline-none focus:border-cyan-500"
         />
       </div>
-   
-      {productsLoading ? (
+
+      {isLoading ? (
         <p className="text-zinc-400">Cargando productos...</p>
-      ) : productsError ? (
-        <p className="text-red-500">{productsError.message || 'Error al cargar productos.'}</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
       ) : filteredProducts.length > 0 ? (
         <div className="space-y-6">
           {filteredProducts.map((product) => (
