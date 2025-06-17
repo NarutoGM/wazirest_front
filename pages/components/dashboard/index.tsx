@@ -78,7 +78,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
     { name: 'Profile', icon: <UserIcon className="w-7 h-7 text-gray-200" />, path: '/profile', action: () => handleNavigation('/profile') },
     { name: 'Subscription', icon: <InboxIcon className="w-7 h-7 text-gray-200" />, path: '/subscription', action: () => handleNavigation('/subscription') },
     { name: 'Documentations', icon: <DocumentTextIcon className="w-7 h-7 text-gray-200" />, path: '/docs', action: () => handleNavigation('/docs') },
-    { name: 'Workspace', icon: <BriefcaseIcon className="w-7 h-7 text-gray-200" />, path: '/workspace', action: () => handleNavigation('/workspace') },
+    { name: 'Suite', icon: <BriefcaseIcon className="w-7 h-7 text-gray-200" />, path: '/suite', action: () => handleNavigation('/suite') },
     { name: 'Tools', icon: <WrenchScrewdriverIcon className="w-7 h-7 text-gray-200" />, path: '/tool', action: () => handleNavigation('/tool') },
     { name: 'Logout', icon: <ArrowLeftOnRectangleIcon className="w-7 h-7 text-gray-200" />, path: '/login', action: handleLogout },
   ];
@@ -210,11 +210,30 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
 
       <div className="flex-grow bg-gray-50 dark:bg-zinc-800 h-screen overflow-auto">
         {status === 'loading' && (
-          <div className="flex justify-center items-center ">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-500"></div>
+          <div className="fixed inset-0 flex items-center justify-center bg-transparent z-50">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-500"></div>
+            
           </div>
+          
         )}
         {status === 'authenticated' && children}
+
+
+
+        <footer className="w-full flex flex-col items-center py-6 bg-transparent">
+          <div className="flex items-center space-x-2 text-gray-300 text-sm">
+            <span>© {new Date().getFullYear()} <span className="font-semibold text-gray-200">Wazilrest</span>.</span>
+            <span>Todos los derechos reservados.</span>
+          </div>
+          <div className="flex items-center mt-1 text-gray-400 text-xs">
+            <span>Creado con</span>
+            <span className="mx-1 text-red-500 text-lg">❤️</span>
+            <span>por el equipo Wazilrest</span>
+          </div>
+        </footer>
+
+
+
       </div>
     </div>
   );

@@ -305,7 +305,7 @@ function DashboardContent() {
 
           <div className="mb-5">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Tus Sesiones</h2>
+              <h2 className="text-xl font-semibold text-white">Tus Sesiones ❤️❤️</h2>
               {sessions.length === 0 ? (
                 <button
                   onClick={createNewInstance}
@@ -515,12 +515,12 @@ function DashboardContent() {
           </div>
 
 
-          <div>
+          {/* <div>
             <p className="text-zinc-400 mt-4">
               Si tienes dudas de cómo usar la herramienta, consulta nuestra documentación para utilizar la API.
             </p>
 
-          </div>
+          </div> */}
         </div>
 
 

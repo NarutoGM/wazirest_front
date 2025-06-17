@@ -13,8 +13,8 @@ export default function Breadcrumb() {
     const pathParts = pathname.split('/').filter(Boolean);
 
 
-    const showButton = pathParts[0] === 'workspace' || pathParts[0] === 'instances';
-    
+    const showButton = pathParts[0] === 'suite' || pathParts[0] === 'instances';
+
 
 
 
@@ -23,7 +23,7 @@ export default function Breadcrumb() {
     const defaultFilter: 'all' | 'plan' | 'no-plan' =
         pathParts[0] === 'instances'
             ? 'plan'
-            : pathParts[0] === 'workspace'
+            : pathParts[0] === 'suite'
                 ? 'no-plan'
                 : 'all';
 
@@ -74,20 +74,20 @@ export default function Breadcrumb() {
                             );
                         })}
                     </ol>
-{showButton && (
-    <button
-        onClick={toggleSidebar}
-        className="mb-4 bg-cyan-600 text-white px-4 py-2 mr-18 rounded hover:bg-cyan-700 transition"
-    >
-        {isSidebarOpen
-            ? 'Cerrar Tienda'
-            : defaultFilter === 'plan'
-                ? 'Upgrade Plan'
-                : defaultFilter === 'no-plan'
-                    ? 'Buy Workspace'
-                    : ''}
-    </button>
-)}
+                    {showButton && (
+                        <button
+                            onClick={toggleSidebar}
+                            className="mb-4 bg-red-600 text-white px-4 py-2 mr-18 rounded font-bold hover:bg-red-700 transition"
+                        >
+                            {isSidebarOpen
+                                ? 'Cerrar Tienda'
+                                : defaultFilter === 'plan'
+                                    ? '👑 Upgrade Instances 👑 '
+                                    : defaultFilter === 'no-plan'
+                                        ? '👑 Buy Suite 👑'
+                                        : ''}
+                        </button>
+                    )}
 
                 </div>
             </div>
