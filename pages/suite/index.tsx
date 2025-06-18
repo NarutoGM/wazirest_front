@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Sidebard from '../components/dashboard/index';
 import { Toaster, toast } from 'sonner';
 import useSWR from 'swr';
-import { PlusIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon, PlusIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 
 interface CustomSession {
@@ -18,9 +18,7 @@ interface WorkspaceStruture {
   id: number;
   documentId: string;
   name?: string | null;
-  fields?: string | null;
   url?: string | null;
-  security?: string | null;
 }
 
 function DashboardContent() {
@@ -49,9 +47,7 @@ function DashboardContent() {
       id: item.id,
       documentId: item.documentId,
       name: item.name || null,
-      fields: item.fields || '',
       url: item.url || '',
-      security: item.security || '',
     }));
 
     console.log('Datos obtenidos:', data);
@@ -110,59 +106,75 @@ function DashboardContent() {
           <h1 className="text-2xl font-bold text-white mb-6">Bienvenido, {username}</h1>
 
 
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white">Tu Suite 😎😎</h2>
-              {workspace.length === 0 ? (
-                <button
-                  onClick={createNewWorkSpace}
-                  className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
-                >
-                  <SparklesIcon className="w-5 h-5" />
-                  Prueba de n8n gratis por 7 días
-                </button>
-              ) : (
-                <button
-                  onClick={createNewWorkSpace}
-                  className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
-                >
-                  <PlusIcon className="w-5 h-5" />
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-white">Tu Suite 😎😎</h2>
+            {workspace.length === 0 ? (
+              <button
+                onClick={createNewWorkSpace}
+                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+              >
+                <SparklesIcon className="w-5 h-5" />
+                Prueba de n8n gratis por 7 días
+              </button>
+            ) : (
+              <button
+                onClick={createNewWorkSpace}
+                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+              >
+                <PlusIcon className="w-5 h-5" />
 
-                  Nueva Instancia
-                </button>
-              )}
+                Nueva Instancia
+              </button>
+            )}
 
-            </div>
+          </div>
 
 
 
 
           <div className="mb-5">
-    
+
 
             {error && <p className="text-red-500 mb-4">{error.message || 'Error al cargar las sesiones.'}</p>}
 
             {loadingSessions ? (
               <p className="text-zinc-400">Cargando sesiones...</p>
             ) : workspace.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
                 {workspace.map((workspaces) => (
                   <div
-                    key={workspaces.documentId}
-                    className="bg-zinc-900/50 rounded-lg shadow-md shadow-cyan-800 p-3 border border-zinc-700"
+                  key={workspaces.documentId}
+                  className="bg-zinc-900/50 rounded-lg shadow-md shadow-cyan-800 p-3 border border-zinc-700"
                   >
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <p className="text-zinc-400">
-                          <span className="font-bold">Nombre:</span> {workspaces.name}
-                        </p>
-                        <p className="text-zinc-400">
-                          <span className="font-bold">ClientId:</span> {workspaces.documentId}
-                        </p>
+                    <div className="flex flex-col gap-2">
+                      <p className="text-zinc-400">
+                      <span className="font-bold">Nombre:</span> {workspaces.name || 'Sin nombre'}
+                      </p>
+                      <p className="text-zinc-400">
+                      <span className="font-bold">ClientId:</span> {workspaces.documentId}
+                      </p>
+                      <div className="flex items-center gap-2">
+                      <span className="text-zinc-400 font-bold">url:</span>
+                      {workspaces.url ? (
+                        <a
+                        href={workspaces.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-400 hover:text-amber-600"
+                        title="Abrir"
+                        >
+                        <ArrowTopRightOnSquareIcon className="w-5 h-5" />
+                        </a>
+                      ) : (
+                        <span className="text-zinc-500">No disponible</span>
+                      )}
                       </div>
+                    </div>
                     </div>
                   </div>
                 ))}
-              </div>
+                </div>
             ) : (
               <p className="text-zinc-400">No tienes sesiones aún. Crea una nueva instancia.</p>
             )}
@@ -176,7 +188,7 @@ function DashboardContent() {
         </div>
       </div>
 
-   
+
     </div>
   );
 }
