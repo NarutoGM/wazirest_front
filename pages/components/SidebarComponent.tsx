@@ -23,7 +23,7 @@ function ProductCard({ product }: { product: WooCommerceProduct }) {
   return (
     <div className="p-4 border border-zinc-700 rounded-lg shadow-md shadow-cyan-800 bg-zinc-900/50 transition-all duration-300 hover:shadow-cyan-600 hover:scale-105 flex flex-col">
       <div className="flex flex-row items-center gap-4">
-        <div className="w-20 h-20 flex-shrink-0 relative">
+        <div className="w-32 h-32 flex-shrink-0 relative">
           <img
             src={imageUrl}
             alt={product.name}
@@ -82,7 +82,7 @@ export default function SidebarComponent({ isOpen, onToggle, initialFilter }: Si
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/products', {
+        const res = await fetch('/api/woocommerce', {
           headers: {
             'Content-Type': 'application/json',
           },
