@@ -79,7 +79,6 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
     { name: 'Subscription', icon: <InboxIcon className="w-7 h-7 text-gray-200" />, path: '/subscription', action: () => handleNavigation('/subscription') },
     { name: 'Documentations', icon: <DocumentTextIcon className="w-7 h-7 text-gray-200" />, path: '/docs', action: () => handleNavigation('/docs') },
     { name: 'Suite', icon: <BriefcaseIcon className="w-7 h-7 text-gray-200" />, path: '/suite', action: () => handleNavigation('/suite') },
-    { name: 'Tools', icon: <WrenchScrewdriverIcon className="w-7 h-7 text-gray-200" />, path: '/tool', action: () => handleNavigation('/tool') },
     { name: 'Logout', icon: <ArrowLeftOnRectangleIcon className="w-7 h-7 text-gray-200" />, path: '/login', action: handleLogout },
   ];
   
