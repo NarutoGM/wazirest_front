@@ -7,13 +7,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
-            {
+      {
         protocol: "https",
         hostname: "wazilrest-wordpress.xwk85y.easypanel.host",
       },
-
-
-      
+      {
+        protocol: "https",
+        hostname: "wazilrest-strapi.xwk85y.easypanel.host",
+      },
       {
         protocol: "http",
         hostname: "localhost",
