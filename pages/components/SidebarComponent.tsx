@@ -11,14 +11,14 @@ interface WooCommerceProduct {
   images: { src: string }[];
 }
 
-// ProductCard Component (unchanged except for placeholder image path)
+// ProductCard Component
 function ProductCard({ product }: { product: WooCommerceProduct }) {
   const { data: session } = useSession();
 
   const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/?clear_cart_and_add=${product.id}&email=${encodeURIComponent(
     session?.email ?? ''
   )}`;
-  const imageUrl = product.images && product.images.length > 0 ? product.images[0].src : '/images/placeholder-image.jpg'; // Updated path
+  const imageUrl = product.images && product.images.length > 0 ? product.images[0].src : '/images/placeholder-image.jpg';
 
   return (
     <div className="p-4 border border-zinc-700 rounded-lg shadow-md shadow-cyan-800 bg-zinc-900/50 transition-all duration-300 hover:shadow-cyan-600 hover:scale-105 flex flex-col">
@@ -28,7 +28,7 @@ function ProductCard({ product }: { product: WooCommerceProduct }) {
             src={imageUrl}
             alt={product.name}
             className="w-full h-full object-contain rounded-md"
-            onError={(e) => (e.currentTarget.src = '/images/placeholder-image.jpg')} // Updated path
+            onError={(e) => (e.currentTarget.src = '/images/placeholder-image.jpg')}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/70 to-transparent rounded-md"></div>
         </div>
@@ -59,24 +59,20 @@ function ProductCard({ product }: { product: WooCommerceProduct }) {
   );
 }
 
-// SidebarComponent: Controls sidebar visibility and handles product fetching and filtering
 interface SidebarComponentProps {
   isOpen: boolean;
   onToggle: () => void;
   initialFilter: 'all' | 'plan' | 'no-plan';
 }
 
-export default function SidebarComponent({ isOpen, onToggle, initialFilter }: SidebarComponentProps) {
-  const [filterType, setFilterType] = useState<'all' | 'plan' | 'no-plan'>(initialFilter);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState<WooCommerceProduct[]>([]);
+export default function SidebarComponent({ isOpen, onToggle }: SidebarComponentProps) {
   const [products, setProducts] = useState<WooCommerceProduct[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch products when sidebar opens
   useEffect(() => {
-    if (!isOpen) return; // Only fetch when sidebar is open
+    if (!isOpen) return;
 
     const fetchProducts = async () => {
       setIsLoading(true);
@@ -108,28 +104,7 @@ export default function SidebarComponent({ isOpen, onToggle, initialFilter }: Si
     };
 
     fetchProducts();
-  }, [isOpen]); // Only trigger when isOpen changes
-
-  // Handle filtering logic
-  useEffect(() => {
-    if (!products) return;
-
-    let filtered = products;
-
-    // Apply name-based filtering
-    filtered = filtered.filter((product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Apply filter type
-    if (filterType === 'plan') {
-      filtered = filtered.filter((product) => product.name.trim().toLowerCase().startsWith('plan'));
-    } else if (filterType === 'no-plan') {
-      filtered = filtered.filter((product) => !product.name.trim().toLowerCase().startsWith('plan'));
-    }
-
-    setFilteredProducts(filtered);
-  }, [products, searchQuery, filterType]);
+  }, [isOpen]);
 
   return (
     <div
@@ -153,23 +128,14 @@ export default function SidebarComponent({ isOpen, onToggle, initialFilter }: Si
         </svg>
       </button>
       <h2 className="text-2xl font-bold text-white mb-6 tracking-tight">Productos Disponibles</h2>
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Buscar productos..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-2 rounded bg-zinc-800 text-white border border-zinc-700 focus:outline-none focus:border-cyan-500"
-        />
-      </div>
 
       {isLoading ? (
         <p className="text-zinc-400">Cargando productos...</p>
       ) : error ? (
         <p className="text-red-500">{error}</p>
-      ) : filteredProducts.length > 0 ? (
+      ) : products.length > 0 ? (
         <div className="space-y-6">
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
