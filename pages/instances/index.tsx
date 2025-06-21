@@ -14,6 +14,7 @@ import SidebarComponent from '../components/SidebarComponent';
 
 interface CustomSession {
   id?: string;
+    jwt?: string;
   firstName?: string;
 }
 
@@ -70,7 +71,7 @@ function DashboardContent() {
     const data = await res.json();
 
     // Transform the response data into WhatsAppSession format
-    const fetchedSessions: WhatsAppSession[] = data.data.map((item: any) => ({
+    const fetchedSessions: WhatsAppSession[] = data.instances.map((item: any) => ({
       id: item.id,
       documentId: item.documentId,
       webhook_url: item.webhook_url || null,
@@ -88,7 +89,7 @@ function DashboardContent() {
   // Fetch user sessions using SWR
   const { data: fetchedSessions, error, isLoading: loadingSessions } = useSWR(
     typedSession?.id
-      ? `/api/instances?userId=${typedSession.id}`
+      ? `/api/instances?token=${typedSession.jwt}`
       : null,
     (url) => fetcher(url, ''),
     {
@@ -153,7 +154,7 @@ function DashboardContent() {
     try {
       await axios.post(
         '/api/instances',
-        { users: typedSession?.id },
+        { token: typedSession?.jwt },
         {
           headers: {
             'Content-Type': 'application/json',

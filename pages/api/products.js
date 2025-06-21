@@ -5,6 +5,10 @@ export default async function handler(req, res) {
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL; // Server-side env variable
   const token_read = process.env.NEXT_PUBLIC_BACKEND_READ_TOKEN; // Server-side env variable
   const weebhook = process.env.NEXT_PUBLIC_N8N_WORKSPACE;
+  
+
+    const weebhook_info = process.env.INFO_SERVICE_WEBHOOK;
+
   try {
     if (method === 'GET') {
       const response = await axios.get(
@@ -14,22 +18,23 @@ export default async function handler(req, res) {
         }
       );
 
-      
+
 
       response
       const payload = response.data.data.map(item => ({
         name: item.name,
+        fields: item.fields,
+
         img: `${process.env.NEXT_PUBLIC_STRAPI_URL}${item.img[0].url}`,
       }));
       return res.status(200).json(payload);
-      
 
 
-      return res.status(200).json(response.data);
+
     } else if (method === 'POST') {
       // Create new instance
       const response = await axios.post(
-        weebhook,
+        weebhook_info,
         body,
         {
           headers: {

@@ -17,9 +17,11 @@ export default async function handler(req, res) {
       // Fetch sessions
       const response = await axios.get(
 
-        `${STRAPI_URL}/api/instances?filters[user][id][$eq]=${query.userId}&sort=id:desc`,
+        `${STRAPI_URL}/api/users/me?populate[instances][filters][publishedAt][$notNull]=true`,
+
+
         {
-          headers: { Authorization: `Bearer ${token_read}` },
+          headers: { Authorization: `Bearer ${query.token}` },
         }
       );
       return res.status(200).json(response.data);

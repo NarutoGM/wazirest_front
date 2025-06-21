@@ -7,10 +7,13 @@ import { Toaster, toast } from 'sonner';
 import { ArrowTopRightOnSquareIcon, PlusIcon, SparklesIcon, ArrowPathIcon, StopIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import Image from 'next/image';
+
 interface CustomSession {
   id?: string;
   firstName?: string;
   username?: string;
+      jwt?: string;
+
 }
 
 interface WorkspaceStruture {
@@ -20,9 +23,14 @@ interface WorkspaceStruture {
   url?: string | null;
 }
 
+interface ProductField {
+  [key: string]: string;
+}
+
 interface Product {
   name: string;
   img: string;
+  fields: ProductField[];
 }
 
 function DashboardContent() {
@@ -35,11 +43,14 @@ function DashboardContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [formValues, setFormValues] = useState<ProductField>({});
 
   const fetchWorkspaces = async () => {
     if (!typedSession?.id) return;
     try {
-      const res = await fetch(`/api/suite?userId=${typedSession.id}`, {
+      const res = await fetch(`/api/suite?token=${typedSession.jwt}`, {
         headers: {
           Authorization: `Bearer ''`,
         },
@@ -48,7 +59,8 @@ function DashboardContent() {
         throw new Error(`Error API: ${res.status}`);
       }
       const data = await res.json();
-      const fetchedWorkspaces: WorkspaceStruture[] = data.data.map((item: any) => ({
+      console.log('Datos de workspaces:', data);
+      const fetchedWorkspaces: WorkspaceStruture[] = data.suites.map((item: any) => ({
         id: item.id,
         documentId: item.documentId,
         name: item.name || null,
@@ -91,19 +103,51 @@ function DashboardContent() {
     }
   }, [status, router]);
 
-  const createNewWorkSpace = async () => {
+  const createNewWorkSpace = async (productName: string, fields: ProductField) => {
     try {
       await axios.post(
         '/api/suite',
-        { users: typedSession?.id },
+        { users: typedSession?.id, productName, fields },
         { headers: { 'Content-Type': 'application/json' } }
       );
       toast.success('Nueva instancia creada con éxito');
-      fetchWorkspaces(); // Refresh workspaces after creation
+      fetchWorkspaces();
     } catch (error: any) {
       console.error('Error al crear nueva instancia:', error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Error al crear nueva instancia');
     }
+  };
+
+  const handleOpenModal = (product: Product) => {
+    setSelectedProduct(product);
+    // Initialize form values with default field values
+    const initialValues: ProductField = {};
+    product.fields.forEach((field) => {
+      Object.entries(field).forEach(([key, value]) => {
+        initialValues[key] = value;
+      });
+    });
+    setFormValues(initialValues);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedProduct(null);
+    setFormValues({});
+  };
+
+  const handleConfirm = () => {
+    if (selectedProduct) {
+      createNewWorkSpace(selectedProduct.name, formValues);
+      handleCloseModal();
+    } else {
+      toast.error('Por favor, selecciona un producto.');
+    }
+  };
+
+  const handleInputChange = (key: string, value: string) => {
+    setFormValues((prev) => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -116,22 +160,13 @@ function DashboardContent() {
 
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Tu Suite 😎😎</h2>
-          {workspace.length === 0 ? (
-            <button
-              onClick={createNewWorkSpace}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
-            >
-              <SparklesIcon className="w-5 h-5" />
-              Prueba de n8n gratis por 7 días
-            </button>
-          ) : (
-            <button
-              onClick={createNewWorkSpace}
-              className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
-            >
-              <PlusIcon className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            onClick={() => setSelectedWorkspace(null)}
+            className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+          >
+            <PlusIcon className="w-5 h-5" />
+            {workspace.length === 0 && 'Prueba de n8n gratis por 7 días'}
+          </button>
         </div>
 
         <div className="mb-5">
@@ -249,22 +284,23 @@ function DashboardContent() {
             ) : products.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {products.map((product, index) => (
-                    <div
+                  <div
                     key={index}
-                    className="bg-zinc-800 rounded-lg p-4 shadow-md flex flex-col h-full"
-                    >
+                    className="bg-zinc-800 rounded-lg p-4 shadow-md flex flex-col h-full cursor-pointer hover:bg-zinc-700 transition"
+                    onClick={() => handleOpenModal(product)}
+                  >
                     <div className="flex-1 flex items-center justify-center mb-2">
                       <Image
-                      src={product.img}
-                      alt={product.name}
-                      width={300}
-                      height={200}
-                      className="object-contain w-full h-40 rounded-md"
-                      style={{ maxHeight: '80px', width: '100%' }}
+                        src={product.img}
+                        alt={product.name}
+                        width={300}
+                        height={200}
+                        className="object-contain w-full h-40 rounded-md"
+                        style={{ maxHeight: '80px', width: '100%' }}
                       />
                     </div>
                     <h3 className="text-lg font-semibold text-center">{product.name}</h3>
-                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -273,6 +309,59 @@ function DashboardContent() {
           </div>
         )}
       </div>
+
+      {/* Modal */}
+      {isModalOpen && selectedProduct && (
+        <div
+          className="fixed inset-0  flex items-center justify-center z-50"
+          onClick={handleCloseModal}
+        >
+          <div
+            className="bg-zinc-800 p-6 rounded-lg shadow-lg w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-xl font-semibold mb-4 text-white">Crear Nueva Instancia</h2>
+            <p className="text-zinc-300 mb-4">
+              Configura los detalles para la nueva instancia de{' '}
+              <span className="font-bold">{selectedProduct.name}</span>
+            </p>
+            <div className="space-y-4">
+              {selectedProduct.fields.map((field, index) => (
+          <div key={index}>
+            {Object.entries(field).map(([key, value]) => (
+              <div key={key} className="mb-4">
+                <label className="block text-zinc-300 mb-1 capitalize">
+            {key.replace(/_/g, ' ')}
+                </label>
+                <input
+            type="text"
+            value={formValues[key] || ''}
+            onChange={(e) => handleInputChange(key, e.target.value)}
+            className="w-full bg-zinc-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder={`Enter ${key.replace(/_/g, ' ')}`}
+                />
+              </div>
+            ))}
+          </div>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+          onClick={handleCloseModal}
+          className="bg-zinc-600 text-white px-4 py-2 rounded-md hover:bg-zinc-700 transition"
+              >
+          Cancelar
+              </button>
+              <button
+          onClick={handleConfirm}
+          className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+              >
+          OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

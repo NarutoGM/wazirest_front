@@ -91,11 +91,11 @@ function DashboardContent() {
   const fetchUserSessions = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`/api/instances?userId=${typedSession?.id}`);
+      const res = await axios.get(`/api/instances?token=${typedSession?.jwt}`);
 
       console.log(res.data.data);
 
-      const fetchedSessions: WhatsAppSession[] = res.data.data.map((item: any) => ({
+      const fetchedSessions: WhatsAppSession[] = res.data.instances.map((item: any) => ({
         id: item.id,
         documentId: item.documentId,
         webhook_url: item.webhook_url || null,
