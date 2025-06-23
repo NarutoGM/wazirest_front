@@ -21,6 +21,7 @@ interface WorkspaceStruture {
   documentId: string;
   name?: string | null;
   url?: string | null;
+  activo?: boolean;
 }
 
 interface ProductField {
@@ -55,18 +56,26 @@ function DashboardContent() {
           Authorization: `Bearer ''`,
         },
       });
+
+
+      const data = await res.json();
+
+      console.log('Prueba:', data);
+
       if (!res.ok) {
         throw new Error(`Error API: ${res.status}`);
       }
-      const data = await res.json();
       console.log('Datos de workspaces:', data);
-      const fetchedWorkspaces: WorkspaceStruture[] = data.suites.map((item: any) => ({
+
+      
+      const fetchedWorkspaces: WorkspaceStruture[] = data[0].suites.map((item: any) => ({
         id: item.id,
         documentId: item.documentId,
         name: item.name || null,
         url: item.url || '',
+        activo: item.activo || false,
       }));
-      console.log('Datos obtenidos:', data);
+      console.log('Datos obtenidos:', fetchedWorkspaces);
       setWorkspaceStruture(fetchedWorkspaces);
     } catch (err: any) {
       console.error('Error al cargar workspaces:', err);
@@ -172,17 +181,26 @@ function DashboardContent() {
         <div className="mb-5">
           {error && <p className="text-red-500 mb-4">{error}</p>}
           {workspace.length > 0 ? (
-            <div className="flex flex-col divide-y divide-zinc-700">
+            <div className="flex  flex-col  divide-zinc-700">
               {workspace.map((workspaces) => (
                 <button
                   key={workspaces.documentId}
-                  className={`flex justify-between rounded-lg items-center py-3 px-2 text-left transition ${
+                  className={`flex my-0.5  justify-between  rounded-md items-center  py-1 px-2 text-left transition ${
                     selectedWorkspace?.documentId === workspaces.documentId
                       ? 'bg-zinc-500/40 text-white'
                       : 'hover:bg-zinc-500/40'
                   }`}
                   onClick={() => setSelectedWorkspace(workspaces)}
                 >
+                                  
+                                  <span className="mr-2">
+                                    <span
+                                      className={`inline-block w-3 h-3 rounded-full ${
+                                        workspaces.activo ? 'bg-emerald-500/70' : 'bg-red-500/70'
+                                      }`}
+                                      title={workspaces.activo ? 'Activo' : 'Inactivo'}
+                                    />
+                                  </span>
                   <span className="text-white">{workspaces.name || 'Sin nombre'}</span>
                 </button>
               ))}

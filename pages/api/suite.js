@@ -5,16 +5,29 @@ export default async function handler(req, res) {
   const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL; // Server-side env variable
   const token_read = process.env.NEXT_PUBLIC_BACKEND_READ_TOKEN; // Server-side env variable
   const weebhook = process.env.NEXT_PUBLIC_N8N_WORKSPACE;
+
+  const weebhook_info =process.env.INFO_SERVICE_WEBHOOK;
+  
   try {
     if (method === 'GET') {
-      const response = await axios.get(
 
-        `${STRAPI_URL}/api/users/me?populate[suites][filters][publishedAt][$notNull]=true`,
-        {
-          headers: { Authorization: `Bearer ${query.token}` },
-        }
-        
-      );
+
+// Send the token to the weebhook_info endpoint
+const response = await axios.post(
+  weebhook_info,
+  { token: query.token },
+  {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }
+);
+
+//        `${STRAPI_URL}/api/users/me?populate[suites][filters][publishedAt][$notNull]=true`,
+
+
+
+    console.log('Response from webhook_info:', response.data);
       return res.status(200).json(response.data);
 
 
