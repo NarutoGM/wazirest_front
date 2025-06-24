@@ -1,6 +1,9 @@
 import axios from 'axios';
 
 export default async function handler(req, res) {
+    const { method, headers, body, query } = req;
+  const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL; // Server-side env variable
+
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL; // Server-side env variable
 
 
@@ -9,6 +12,25 @@ export default async function handler(req, res) {
   }
 
   const { clientId } = req.body;
+
+
+  const  token  = headers.token;
+
+
+      
+      const user = await axios.get(
+        `${STRAPI_URL}/api/users/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      if (user.status_plan=== false) {
+        return res.status(400).json({ message: 'No tienes un plan activo' });
+      }
+
 
 
   try {

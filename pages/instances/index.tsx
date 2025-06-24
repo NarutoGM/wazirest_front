@@ -130,7 +130,7 @@ function DashboardContent() {
 
   const fetchQrsForDisconnectedSessions = async (documentId: string) => {
     const disconnectedSession = sessions.find(
-      (session) => session.state === 'Disconnected' && session.is_active && session.documentId === documentId
+      (session) => session.state === 'Disconnected'  && session.documentId === documentId
     );
 
     if (!disconnectedSession) {
@@ -142,10 +142,14 @@ function DashboardContent() {
       await axios.post(
         '/api/instances/qr',
         { clientId: documentId },
-        { headers: { 'Content-Type': 'application/json' } }
+        { headers: { 'Content-Type': 'application/json' ,
+                      'token': typedSession?.jwt,
+
+        } }
       );
-    } catch (err: any) {
-      console.error(`Error fetching QR for ${documentId}:`, err.response?.data || err.message);
+    } catch (error: any) {
+            toast.error(error.response?.data?.message || `Error fetching QR for ${documentId}:`);
+
     }
   };
 
@@ -158,6 +162,7 @@ function DashboardContent() {
         {
           headers: {
             'Content-Type': 'application/json',
+            'token': typedSession?.jwt,
           },
         }
       );
@@ -179,12 +184,13 @@ function DashboardContent() {
         {
           headers: {
             'Content-Type': 'application/json',
+            'token': typedSession?.jwt,
           },
         }
       );
       toast.success('Webhook actualizado con éxito');
     } catch (error: any) {
-      console.error('Error al actualizar el webhook:', error.response?.data || error.message);
+      toast.error(error.response?.data?.message || 'Error al actualizar el webhook');
     }
   };
 
@@ -228,12 +234,14 @@ function DashboardContent() {
         {
           headers: {
             'Content-Type': 'application/json',
+            'token': typedSession?.jwt,
           },
         }
       );
       toast.success(`Instancia ${newActiveState ? 'activada' : 'pausada'} con éxito`);
     } catch (error: any) {
-      console.error('Error al alternar estado de la instancia:', error.response?.data || error.message);
+            toast.error(error.response?.data?.message || 'Error al alternar estado de la instancia:');
+
     }
   };
 
@@ -274,21 +282,21 @@ function DashboardContent() {
         `/api/instances?documentId=${selectedDocumentId}`,
         {
           data: {
-            message_received: webhookSettings.message_received,
-            message_sent: webhookSettings.message_sent,
+        message_received: webhookSettings.message_received,
+        message_sent: webhookSettings.message_sent,
           },
         },
         {
           headers: {
-            'Content-Type': 'application/json',
+        'Content-Type': 'application/json',
+        token: typedSession?.jwt,
           },
         }
       );
       toast.success('Configuración de webhook actualizada con éxito');
       setIsModalOpen(false);
     } catch (error: any) {
-      console.error('Error al actualizar configuración de webhook:', error.response?.data || error.message);
-      toast.error('Error al actualizar configuración de webhook');
+            toast.error(error.response?.data?.message || 'Error al actualizar configuración de webhook');
     }
   };
 

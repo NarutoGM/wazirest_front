@@ -30,6 +30,24 @@ export default async function handler(req, res) {
 
     } else if (method === 'POST') {
       // Create new instance
+      const  token  = headers.token;
+
+
+      
+      const user = await axios.get(
+        `${STRAPI_URL}/api/users/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      if (user.status_plan=== false) {
+        return res.status(400).json({ message: 'No tienes un plan activo' });
+      }
+
+
       const response = await axios.post(
         process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL,
         body,
@@ -52,6 +70,22 @@ export default async function handler(req, res) {
 
     } else if (method === 'PUT') {
       // Update webhook or instance
+      const  token  = headers.token;
+
+      
+      const user = await axios.get(
+        `${STRAPI_URL}/api/users/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      if (user.status_plan=== false) {
+        return res.status(400).json({ message: 'No tienes un plan activo' });
+      }
+
       const { documentId } = query;
       const response = await axios.put(
         `${STRAPI_URL}/api/instances/${documentId}`,
