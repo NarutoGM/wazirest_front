@@ -27,7 +27,7 @@ export default async function handler(req, res) {
           },
         }
       );
-      if (user.status_plan=== false) {
+      if (user.data.status_plan=== false) {
         return res.status(400).json({ message: 'No tienes un plan activo' });
       }
 
