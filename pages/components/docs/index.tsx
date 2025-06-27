@@ -90,7 +90,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
     {
       title: 'Enviar mensajes',
       items: [
-        { name: 'Send text', icon: <ChatBubbleLeftRightIcon className="w-7 h-7 text-gray-200" />, path: '/docs/send-text', action: () => handleNavigation('/docs/send-text') },
+        { name: 'Send message', icon: <ChatBubbleLeftRightIcon className="w-7 h-7 text-gray-200" />, path: '/docs/send-message', action: () => handleNavigation('/docs/send-message') },
         { name: 'Send image', icon: <PhotoIcon className="w-7 h-7 text-gray-200" />, path: '/docs/send-image', action: () => handleNavigation('/docs/send-image') },
         { name: 'Send audio', icon: <SpeakerWaveIcon className="w-7 h-7 text-gray-200" />, path: '/docs/send-audio', action: () => handleNavigation('/docs/send-audio') },
         { name: 'Send stiker', icon: <SparklesIcon className="w-7 h-7 text-gray-200" />, path: '/docs/send-sticker', action: () => handleNavigation('/docs/send-sticker') },

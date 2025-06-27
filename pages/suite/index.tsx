@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebard from '../components/dashboard/index';
 import { Toaster, toast } from 'sonner';
-import { ArrowTopRightOnSquareIcon, PlusIcon, SparklesIcon, ArrowPathIcon, StopIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon, PlusIcon, SparklesIcon, ArrowPathIcon, StopIcon, XMarkIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import Image from 'next/image';
 
@@ -12,8 +12,7 @@ interface CustomSession {
   id?: string;
   firstName?: string;
   username?: string;
-      jwt?: string;
-
+  jwt?: string;
 }
 
 interface WorkspaceStruture {
@@ -34,6 +33,18 @@ interface Product {
   fields: ProductField[];
 }
 
+interface ResourceUsage {
+  cpu: number;
+  memory: {
+    usage: number;
+    percent: number;
+  };
+  network: {
+    in: number;
+    out: number;
+  };
+}
+
 function DashboardContent() {
   const { data: session, status } = useSession();
   const username = (session as CustomSession | null)?.username;
@@ -47,6 +58,7 @@ function DashboardContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [formValues, setFormValues] = useState<ProductField>({});
+  const [resourceUsage, setResourceUsage] = useState<ResourceUsage | null>(null);
 
   const fetchWorkspaces = async () => {
     if (!typedSession?.id) return;
@@ -57,17 +69,12 @@ function DashboardContent() {
         },
       });
 
-
       const data = await res.json();
-
-      console.log('Prueba:', data);
 
       if (!res.ok) {
         throw new Error(`Error API: ${res.status}`);
       }
-      console.log('Datos de workspaces:', data);
 
-      
       const fetchedWorkspaces: WorkspaceStruture[] = data[0].suites.map((item: any) => ({
         id: item.id,
         documentId: item.documentId,
@@ -75,7 +82,6 @@ function DashboardContent() {
         url: item.url || '',
         activo: item.activo || false,
       }));
-      console.log('Datos obtenidos:', fetchedWorkspaces);
       setWorkspaceStruture(fetchedWorkspaces);
     } catch (err: any) {
       console.error('Error al cargar workspaces:', err);
@@ -91,7 +97,6 @@ function DashboardContent() {
         throw new Error(`Error API: ${res.status}`);
       }
       const data = await res.json();
-      console.log('Productos obtenidos:', data);
       setProducts(data);
       setLoadingProducts(false);
     } catch (err: any) {
@@ -100,6 +105,45 @@ function DashboardContent() {
       setLoadingProducts(false);
     }
   };
+
+const fetchResourceUsage = async () => {
+  if (!selectedWorkspace?.name || !typedSession?.jwt) {
+    console.warn('Missing required parameters:', { workspaceName: selectedWorkspace?.name, jwt: typedSession?.jwt });
+    return;
+  }
+  try {
+    const res = await axios.post('/api/suite/suite', {
+      token: typedSession.jwt,
+      name_service: selectedWorkspace.name,
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = res.data[0]?.result?.data?.json;
+    if (data) {
+      setResourceUsage({
+        cpu: data.cpu.percent * 100, // Convert to percentage
+        memory: {
+          usage: data.memory.usage / 1024 / 1024, // Convert bytes to MB
+          percent: data.memory.percent,
+        },
+        network: {
+          in: data.network.in,
+          out: data.network.out,
+        },
+      });
+    } else {
+      console.warn('Invalid response structure:', res.data);
+      toast.error('Respuesta inválida del servidor');
+    }
+  } catch (error: any) {
+    console.error('Error al cargar uso de recursos:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    toast.error(error.response?.data?.error || 'Error al cargar el uso de recursos');
+  }
+};
 
   useEffect(() => {
     fetchWorkspaces();
@@ -111,6 +155,14 @@ function DashboardContent() {
       router.push('/login');
     }
   }, [status, router]);
+
+  useEffect(() => {
+    if (selectedWorkspace) {
+      fetchResourceUsage();
+    } else {
+      setResourceUsage(null);
+    }
+  }, [selectedWorkspace]);
 
   const createNewWorkSpace = async (productName: string, fields: ProductField) => {
     try {
@@ -129,7 +181,6 @@ function DashboardContent() {
 
   const handleOpenModal = (product: Product) => {
     setSelectedProduct(product);
-    // Initialize form values with default field values
     const initialValues: ProductField = {};
     product.fields.forEach((field) => {
       Object.entries(field).forEach(([key, value]) => {
@@ -151,13 +202,65 @@ function DashboardContent() {
       createNewWorkSpace(selectedProduct.name, formValues);
       handleCloseModal();
     } else {
-      toast.error('Por favor, selecciona un producto.');
+      toast.error('Por favor selecciona un producto.');
     }
   };
 
   const handleInputChange = (key: string, value: string) => {
     setFormValues((prev) => ({ ...prev, [key]: value }));
   };
+  
+
+
+  const init = async () => {
+    try {
+      await axios.post('/api/suite/init', {
+        token: typedSession?.jwt,
+        name_service: selectedWorkspace?.name,
+      }, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+        toast.success(`${selectedWorkspace?.name} iniciada con éxito`);
+
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al inizializar una suite');
+
+    }
+  };
+
+  const pause = async () => {
+    try {
+      await axios.post('/api/suite/pause', {
+        token: typedSession?.jwt,
+        name_service: selectedWorkspace?.name,
+      }, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+        toast.success(`${selectedWorkspace?.name} pausada con éxito`);
+
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al pausar una suite');
+
+    }
+  };
+
+
+  const dele = async () => {
+    try {
+      await axios.post('/api/suite/delete', {
+        token: typedSession?.jwt,
+        name_service: selectedWorkspace?.name,
+      }, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+        toast.success(`${selectedWorkspace?.name} pausada con éxito`);
+
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Error al pausar una suite');
+
+    }
+  };
+
 
   return (
     <div className="flex h-screen">
@@ -181,26 +284,25 @@ function DashboardContent() {
         <div className="mb-5">
           {error && <p className="text-red-500 mb-4">{error}</p>}
           {workspace.length > 0 ? (
-            <div className="flex  flex-col  divide-zinc-700">
+            <div className="flex flex-col divide-y divide-zinc-700">
               {workspace.map((workspaces) => (
                 <button
                   key={workspaces.documentId}
-                  className={`flex my-0.5  justify-between  rounded-md items-center  py-1 px-2 text-left transition ${
+                  className={`flex my-0.5 justify-between rounded-md items-center py-1 px-2 text-left transition ${
                     selectedWorkspace?.documentId === workspaces.documentId
                       ? 'bg-zinc-500/40 text-white'
                       : 'hover:bg-zinc-500/40'
                   }`}
                   onClick={() => setSelectedWorkspace(workspaces)}
                 >
-                                  
-                                  <span className="mr-2">
-                                    <span
-                                      className={`inline-block w-3 h-3 rounded-full ${
-                                        workspaces.activo ? 'bg-emerald-500/70' : 'bg-red-500/70'
-                                      }`}
-                                      title={workspaces.activo ? 'Activo' : 'Inactivo'}
-                                    />
-                                  </span>
+                  <span className="mr-2">
+                    <span
+                      className={`inline-block w-3 h-3 rounded-full ${
+                        workspaces.activo ? 'bg-emerald-500/70' : 'bg-red-500/70'
+                      }`}
+                      title={workspaces.activo ? 'Activo' : 'Inactivo'}
+                    />
+                  </span>
                   <span className="text-white">{workspaces.name || 'Sin nombre'}</span>
                 </button>
               ))}
@@ -215,8 +317,10 @@ function DashboardContent() {
       <div className="flex-1 bg-zinc-900 p-5 text-white rounded-bl-3xl rounded-tl-3xl">
         {selectedWorkspace ? (
           <div>
-            <div className="mb-6 flex flex-col gap-2">
-              <div className="flex items-center gap-2">
+
+            
+            <div className="mb-6 flex flex-row items-center gap-8">
+              <div className="text-2xl flex items-center gap-2">
                 <span className="font-semibold">Nombre:</span>
                 <span>{selectedWorkspace.name || 'Sin nombre'}</span>
               </div>
@@ -230,61 +334,64 @@ function DashboardContent() {
                       className="text-emerald-400 hover:text-emerald-300"
                       title="Abrir en nueva pestaña"
                     >
-                      <ArrowTopRightOnSquareIcon className="w-6 h-6" />
+                      <ArrowTopRightOnSquareIcon className="w-9 h-9" />
                     </a>
                   </span>
                 ) : (
                   <span className="text-zinc-400">No disponible</span>
                 )}
               </div>
-              <div className="flex flex-row gap-3 mt-4">
-                <button
-                  className="flex items-center gap-1 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded transition text-sm"
-                  title="Reiniciar"
-                >
-                  <ArrowPathIcon className="w-7 h-7" />
-                </button>
-                <button
-                  className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition text-sm"
-                  title="Parar"
-                >
-                  <StopIcon className="w-7 h-7" />
-                </button>
+              <div className="flex flex-row gap-3">
+                {selectedWorkspace.activo ? (
+                    <button
+                    className="flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition text-sm"
+                    title="Parar"
+                    onClick={pause}
+                    >
+                    <StopIcon className="w-7 h-7" />
+                    </button>
+                ) : (
+                  <button
+                    className="flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded transition text-sm"
+                    title="Iniciar"
+                    onClick={init}  
+                  >
+                    <PlayIcon className="w-7 h-7" />
+                  </button>
+                )}
                 <button
                   className="flex items-center gap-1 bg-zinc-700 hover:bg-zinc-800 text-white px-3 py-1 rounded transition text-sm"
                   title="Eliminar"
+                  onClick={dele}
                 >
-                  <XMarkIcon className="w-7 h-7" />
+                  <TrashIcon className="w-7 h-7" />
                 </button>
               </div>
             </div>
+
+
+
             <div className="bg-zinc-800 rounded-lg p-6 shadow-md mb-4">
               <h3 className="text-lg font-semibold mb-2">Uso de Recursos</h3>
               <div className="mb-3">
-                <span className="block text-zinc-400 mb-1">CPU</span>
-                <div className="w-full bg-zinc-700 rounded-full h-4">
-                  <div className="bg-emerald-500 h-4 rounded-full" style={{ width: `32%` }} />
-                </div>
-                <span className="text-sm text-zinc-300">32% usado</span>
+          
+              
               </div>
               <div className="mb-3">
                 <span className="block text-zinc-400 mb-1">Memoria</span>
                 <div className="w-full bg-zinc-700 rounded-full h-4">
-                  <div className="bg-emerald-400 h-4 rounded-full" style={{ width: `54%` }} />
+                  <div
+                    className="bg-emerald-400 h-4 rounded-full"
+                    style={{ width: `${resourceUsage?.memory.percent || 0}%` }}
+                  />
                 </div>
                 <span className="text-sm text-zinc-300">
-                  860 mb / 1600 mb
+                  {resourceUsage
+                    ? `${resourceUsage.memory.usage.toFixed(2)} MB / ${(resourceUsage.memory.usage / (resourceUsage.memory.percent / 100)).toFixed(2)} MB`
+                    : 'Cargando...'}
                 </span>
               </div>
-              <div>
-                <span className="block text-zinc-400 mb-1">Almacenamiento</span>
-                <div className="w-full bg-zinc-700 rounded-full h-4">
-                  <div className="bg-emerald-300 h-4 rounded-full" style={{ width: `12%` }} />
-                </div>
-                <span className="text-sm text-zinc-300">
-                  2.4 GB / 20 GB
-                </span>
-              </div>
+            
             </div>
             <button
               onClick={() => setSelectedWorkspace(null)}
@@ -331,7 +438,7 @@ function DashboardContent() {
       {/* Modal */}
       {isModalOpen && selectedProduct && (
         <div
-          className="fixed inset-0  flex items-center justify-center z-50"
+          className="fixed inset-0 flex items-center justify-center z-50"
           onClick={handleCloseModal}
         >
           <div
@@ -345,36 +452,36 @@ function DashboardContent() {
             </p>
             <div className="space-y-4">
               {selectedProduct.fields.map((field, index) => (
-          <div key={index}>
-            {Object.entries(field).map(([key, value]) => (
-              <div key={key} className="mb-4">
-                <label className="block text-zinc-300 mb-1 capitalize">
-            {key.replace(/_/g, ' ')}
-                </label>
-                <input
-            type="text"
-            value={formValues[key] || ''}
-            onChange={(e) => handleInputChange(key, e.target.value)}
-            className="w-full bg-zinc-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            placeholder={`Enter ${key.replace(/_/g, ' ')}`}
-                />
-              </div>
-            ))}
-          </div>
+                <div key={index}>
+                  {Object.entries(field).map(([key, value]) => (
+                    <div key={key} className="mb-4">
+                      <label className="block text-zinc-300 mb-1 capitalize">
+                        {key.replace(/_/g, ' ')}
+                      </label>
+                      <input
+                        type="text"
+                        value={formValues[key] || ''}
+                        onChange={(e) => handleInputChange(key, e.target.value)}
+                        className="w-full bg-zinc-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder={`Enter ${key.replace(/_/g, ' ')}`}
+                      />
+                    </div>
+                  ))}
+                </div>
               ))}
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button
-          onClick={handleCloseModal}
-          className="bg-zinc-600 text-white px-4 py-2 rounded-md hover:bg-zinc-700 transition"
+                onClick={handleCloseModal}
+                className="bg-zinc-600 text-white px-4 py-2 rounded-md hover:bg-zinc-700 transition"
               >
-          Cancelar
+                Cancelar
               </button>
               <button
-          onClick={handleConfirm}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+                onClick={handleConfirm}
+                className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
               >
-          OK
+                OK
               </button>
             </div>
           </div>

@@ -27,7 +27,6 @@ const response = await axios.post(
 
 
 
-    console.log('Response from webhook_info:', response.data);
       return res.status(200).json(response.data);
 
 
