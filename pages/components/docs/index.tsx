@@ -232,7 +232,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
               />
             ) : (
               <div className="bg-emerald-600 text-white text-sm font-bold h-full w-full flex items-center justify-center">
-                {email ? email.charAt(0).toUpperCase() : 'N/A'}
+                {email ? email.charAt(0).toUpperCase() : 'Doc'}
               </div>
             )}
           </div>
@@ -251,7 +251,21 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-500"></div>
           </div>
         )}
-        {status === 'authenticated' && children}
+        { children}
+
+
+                <footer className="w-full flex flex-col items-center py-6 bg-transparent">
+          <div className="flex items-center space-x-2 text-gray-300 text-sm">
+            <span>© {new Date().getFullYear()} <span className="font-semibold text-gray-200">Wazilrest</span>.</span>
+            <span>Todos los derechos reservados.</span>
+          </div>
+          <div className="flex items-center mt-1 text-gray-400 text-xs">
+            <span>Creado con</span>
+            <span className="mx-1 text-red-500 text-lg">❤️</span>
+            <span>por el equipo Wazilrest</span>
+          </div>
+        </footer>
+
       </div>
     </div>
   );

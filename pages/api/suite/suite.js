@@ -15,6 +15,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Missing token or name_service in request body' });
       }
 
+      // Send the POST request to the webhook
       const response = await axios.post(
         webhook,
         {
@@ -23,10 +24,13 @@ export default async function handler(req, res) {
         },
         {
           headers: {
-            'Content-Type': 'application/json',
+        'Content-Type': 'application/json',
           },
         }
       );
+
+      console.log('Webhook aaaaaaaaaaaaaaaaaaaaaa:', response.data);
+
 
 
       // Normalize the response: wrap single object in an array if needed
