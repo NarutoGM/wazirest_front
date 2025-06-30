@@ -15,7 +15,7 @@ interface WooCommerceProduct {
 function ProductCard({ product }: { product: WooCommerceProduct }) {
   const { data: session } = useSession();
 
-  const checkoutUrl = `https://wazilrest-wordpress.xwk85y.easypanel.host/?clear_cart_and_add=${product.id}&email=${encodeURIComponent(
+  const checkoutUrl = `https://wazilrest.com/?clear_cart_and_add=${product.id}&email=${encodeURIComponent(
     session?.email ?? ''
   )}`;
   const imageUrl = product.images && product.images.length > 0 ? product.images[0].src : '/images/placeholder-image.jpg';
