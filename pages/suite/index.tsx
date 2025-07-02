@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebard from '../components/dashboard/index';
 import { Toaster, toast } from 'sonner';
-import { ArrowTopRightOnSquareIcon, PlusIcon, SparklesIcon, ArrowPathIcon, StopIcon, XMarkIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon, PlusIcon, ClipboardIcon, ArrowPathIcon, StopIcon, EyeIcon, EyeSlashIcon, PlayIcon, TrashIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import Image from 'next/image';
 
@@ -21,6 +21,7 @@ interface WorkspaceStruture {
   name?: string | null;
   url?: string | null;
   activo?: boolean;
+  credencials?: { [key: string]: string } | null;
 }
 
 interface ProductField {
@@ -61,6 +62,17 @@ function DashboardContent() {
   const [resourceUsage, setResourceUsage] = useState<ResourceUsage | null>(null);
   const [isLoading, setIsLoading] = useState(false); // Para manejar estados de carga
 
+  // State to control visibility of sensitive fields for credentials
+  const [showFields, setShowFields] = useState<{ [key: string]: boolean }>({});
+
+  // Helper to toggle visibility
+  const toggleShow = (key: string) => {
+    setShowFields(prev => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
   // Trae los workspaces cada 5 segundos
   const fetchWorkspaces = async () => {
     if (!typedSession?.id) return;
@@ -83,9 +95,10 @@ function DashboardContent() {
         name: item.name || null,
         url: item.url || '',
         activo: item.activo || false,
+        credencials: item.credencials || null,
       }));
       setWorkspaceStruture(fetchedWorkspaces);
-      
+
       // Actualizar el workspace seleccionado si existe
       if (selectedWorkspace) {
         const updatedSelectedWorkspace = fetchedWorkspaces.find(
@@ -224,7 +237,7 @@ function DashboardContent() {
 
   const init = async () => {
     if (!selectedWorkspace || isLoading) return;
-    
+
     setIsLoading(true);
     try {
       await axios.post('/api/suite/init', {
@@ -233,21 +246,21 @@ function DashboardContent() {
       }, {
         headers: { 'Content-Type': 'application/json' },
       });
-      
+
       toast.success(`${selectedWorkspace?.name} iniciada con éxito`);
-      
+
       // Actualizar inmediatamente el estado del workspace seleccionado
       setSelectedWorkspace(prev => prev ? { ...prev, activo: true } : null);
-      
+
       // Actualizar también la lista de workspaces
-      setWorkspaceStruture(prev => 
-        prev.map(ws => 
-          ws.documentId === selectedWorkspace.documentId 
+      setWorkspaceStruture(prev =>
+        prev.map(ws =>
+          ws.documentId === selectedWorkspace.documentId
             ? { ...ws, activo: true }
             : ws
         )
       );
-      
+
       // Hacer fetch completo para sincronizar con el servidor
       fetchWorkspaces();
     } catch (err: any) {
@@ -259,7 +272,7 @@ function DashboardContent() {
 
   const pause = async () => {
     if (!selectedWorkspace || isLoading) return;
-    
+
     setIsLoading(true);
     try {
       await axios.post('/api/suite/pause', {
@@ -268,21 +281,21 @@ function DashboardContent() {
       }, {
         headers: { 'Content-Type': 'application/json' },
       });
-      
+
       toast.success(`${selectedWorkspace?.name} pausada con éxito`);
-      
+
       // Actualizar inmediatamente el estado del workspace seleccionado
       setSelectedWorkspace(prev => prev ? { ...prev, activo: false } : null);
-      
+
       // Actualizar también la lista de workspaces
-      setWorkspaceStruture(prev => 
-        prev.map(ws => 
-          ws.documentId === selectedWorkspace.documentId 
+      setWorkspaceStruture(prev =>
+        prev.map(ws =>
+          ws.documentId === selectedWorkspace.documentId
             ? { ...ws, activo: false }
             : ws
         )
       );
-      
+
       // Hacer fetch completo para sincronizar con el servidor
       fetchWorkspaces();
     } catch (err: any) {
@@ -294,7 +307,7 @@ function DashboardContent() {
 
   const dele = async () => {
     if (!selectedWorkspace || isLoading) return;
-    
+
     setIsLoading(true);
     try {
       await axios.post('/api/suite/delete', {
@@ -303,15 +316,15 @@ function DashboardContent() {
       }, {
         headers: { 'Content-Type': 'application/json' },
       });
-      
+
       toast.success(`${selectedWorkspace?.name} eliminada con éxito`);
-      
+
       // Remover el workspace de la lista y limpiar selección
-      setWorkspaceStruture(prev => 
+      setWorkspaceStruture(prev =>
         prev.filter(ws => ws.documentId !== selectedWorkspace.documentId)
       );
       setSelectedWorkspace(null);
-      
+
       // Hacer fetch completo para sincronizar con el servidor
       fetchWorkspaces();
     } catch (err: any) {
@@ -322,7 +335,7 @@ function DashboardContent() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex  ">
       <Toaster richColors position="top-right" />
 
       {/* Left Sidebar (Fixed Width) */}
@@ -371,49 +384,49 @@ function DashboardContent() {
       </div>
 
       {/* Right Content Area (Dynamic) */}
-      <div className="flex-1 bg-zinc-900 p-5 text-white rounded-bl-3xl rounded-tl-3xl">
+      <div className="w-full bg-zinc-900 p-5 text-white rounded-bl-3xl rounded-tl-3xl">
 
         {selectedWorkspace ? (
           selectedWorkspace.name === 'n8n_free_treal' ? (
 
             <div>
               <div className="mb-6 flex flex-row items-center gap-8">
-              <div className="text-2xl flex items-center gap-2">
-                <span className="font-semibold">Nombre:</span>
-                <span>{selectedWorkspace.name || 'Sin nombre'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {selectedWorkspace.url ? (
-                <span className="flex items-center gap-1">
-                  <a
-                  href={selectedWorkspace.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-emerald-400 hover:text-emerald-300"
-                  title="Abrir en nueva pestaña"
-                  >
-                  <ArrowTopRightOnSquareIcon className="w-9 h-9" />
-                  </a>
-                </span>
-                ) : (
-                <span className="text-zinc-400">No disponible</span>
-                )}
-              </div>
+                <div className="text-2xl flex items-center gap-2">
+                  <span className="font-semibold">Nombre:</span>
+                  <span>{selectedWorkspace.name || 'Sin nombre'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedWorkspace.url ? (
+                    <span className="flex items-center gap-1">
+                      <a
+                        href={selectedWorkspace.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-400 hover:text-emerald-300"
+                        title="Abrir en nueva pestaña"
+                      >
+                        <ArrowTopRightOnSquareIcon className="w-9 h-9" />
+                      </a>
+                    </span>
+                  ) : (
+                    <span className="text-zinc-400"></span>
+                  )}
+                </div>
               </div>
               <div className="text-zinc-300">
-              <span className="text-emerald-400 font-bold text-lg block mb-2">
-                ¡Bienvenidos! Este espacio es para ustedes, disfruten su prueba gratuita de <b>n8n</b> 🚀
-              </span>
-              Recuerden que esta instancia es para pruebas y la infraestructura es administrada por el equipo de soporte.<br />
-              <span className="text-amber-400 font-semibold">
-                Si contratan un plan, podrán migrar sus flujos y disfrutar de más beneficios.
-              </span>
+                <span className="text-emerald-400 font-bold text-lg block mb-2">
+                  ¡Bienvenidos! Este espacio es para ustedes, disfruten su prueba gratuita de <b>n8n</b> 🚀
+                </span>
+                Recuerden que esta instancia es para pruebas y la infraestructura es administrada por el equipo de soporte.<br />
+                <span className="text-amber-400 font-semibold">
+                  Si contratan un plan, podrán migrar sus flujos y disfrutar de más beneficios.
+                </span>
               </div>
               <button
-              onClick={() => setSelectedWorkspace(null)}
-              className="mt-4 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
+                onClick={() => setSelectedWorkspace(null)}
+                className="mt-4 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
               >
-              Volver
+                Volver
               </button>
             </div>
 
@@ -439,7 +452,7 @@ function DashboardContent() {
                       </a>
                     </span>
                   ) : (
-                    <span className="text-zinc-400">No disponible</span>
+                    <span className="text-zinc-400"></span>
                   )}
                 </div>
                 <div className="flex flex-row gap-3">
@@ -494,9 +507,77 @@ function DashboardContent() {
                       ? `${resourceUsage.memory.usage.toFixed(2)} MB / ${(resourceUsage.memory.usage / (resourceUsage.memory.percent / 100)).toFixed(2)} MB`
                       : 'Cargando...'}
                   </span>
-                </div>
 
+
+
+                  {selectedWorkspace.credencials && (
+                    <div className="bg-zinc-800 rounded-lg py-6 mb-4">
+                      <h3 className="text-lg font-semibold mb-2">Credenciales</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(selectedWorkspace.credencials).map(([key, value], idx, arr) => {
+                          // Si es el último y hay un número impar, que ocupe todo el ancho
+                          const isLast = idx === arr.length - 1 && arr.length % 2 !== 0;
+                          const isSensitive = key === 'password' || key === 'urlInterna';
+                          const show = !!showFields[key];
+                          return (
+                            <div
+                              key={key}
+                              className={`flex flex-col bg-zinc-900 rounded-md p-4 ${isLast ? 'md:col-span-2' : ''}`}
+                            >
+                              <span className="text-zinc-400 font-semibold mb-1">{key}:</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-zinc-200 break-all text-base bg-zinc-800 rounded px-3 py-1 select-all w-full block">
+                                  {isSensitive && !show ? '••••••••' : String(value)}
+                                </span>
+                                {isSensitive && (
+                                  <button
+                                    className="bg-zinc-700 hover:bg-zinc-600 text-white px-2 py-1 rounded transition text-xs flex items-center gap-1"
+                                    title={show ? 'Ocultar' : 'Mostrar'}
+                                    type="button"
+                                    onClick={() => toggleShow(key)}
+                                  >
+                                    {show ? (
+                                      <EyeIcon className="w-6 h-6" />
+                                    ) : (
+                                      <EyeSlashIcon className="w-6 h-6" />
+
+                                    )}
+                                  </button>
+                                )}
+                                <button
+                                  className="bg-zinc-700 hover:bg-zinc-600 text-white px-2 py-1 rounded transition text-xs flex items-center gap-1"
+                                  title="Copiar"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(String(value));
+                                    toast.success('Copiado al portapapeles');
+                                  }}
+                                  type="button"
+                                >
+                                  <ClipboardIcon className="w-6 h-6" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+
+                </div>
               </div>
+
+
+
+
+
+
+
+
+
+
+
+
               <button
                 onClick={() => setSelectedWorkspace(null)}
                 className="mt-4 bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition"
@@ -540,6 +621,8 @@ function DashboardContent() {
             )}
           </div>
         )}
+
+        
       </div>
 
       {/* Modal */}
@@ -563,28 +646,28 @@ function DashboardContent() {
                   {Object.entries(field).map(([key, value]) => (
                     <div key={key} className="mb-4">
                       <label className="block text-zinc-300 mb-1 capitalize">
-                      {key.replace(/_/g, ' ')}
+                        {key.replace(/_/g, ' ')}
                       </label>
                       <input
-                      type="text"
-                      value={formValues[key] || ''}
-                      onChange={(e) => handleInputChange(key, e.target.value)}
-                      className="w-full bg-zinc-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      placeholder={`Enter ${key.replace(/_/g, ' ')}`}
+                        type="text"
+                        value={formValues[key] || ''}
+                        onChange={(e) => handleInputChange(key, e.target.value)}
+                        className="w-full bg-zinc-700 text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        placeholder={`Enter ${key.replace(/_/g, ' ')}`}
                       />
                       {key === 'service_name' && (
-                      <>
-                        {/[A-Z]/.test(formValues[key] || '') && (
-                        <p className="text-red-500 text-sm mt-1">
-                          El nombre del servicio no debe contener mayúsculas.
-                        </p>
-                        )}
-                        {(formValues[key] || '').trim() === 'n8n_free_treal' && (
-                        <p className="text-red-500 text-sm mt-1">
-                          El nombre <b>n8n_free_treal</b> está reservado por el sistema.
-                        </p>
-                        )}
-                      </>
+                        <>
+                          {/[A-Z]/.test(formValues[key] || '') && (
+                            <p className="text-red-500 text-sm mt-1">
+                              El nombre del servicio no debe contener mayúsculas.
+                            </p>
+                          )}
+                          {(formValues[key] || '').trim() === 'n8n_free_treal' && (
+                            <p className="text-red-500 text-sm mt-1">
+                              El nombre <b>n8n_free_treal</b> está reservado por el sistema.
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   ))}
