@@ -25,63 +25,69 @@ function UpdateUserPage() {
   const [error, setError] = useState<string | null>(null);
   const [isKeyVisible, setIsKeyVisible] = useState(false);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${typedSession?.jwt}`,
-            },
-          }
-        );
+useEffect(() => {
+  const fetchUserData = async () => {
+    try {
 
-        const userData = response.data;
-        setEmail(userData.email || '');
-        setUsername(userData.username || '');
-        setDocumentId(userData.documentId || '');
-        setKey(userData.key || '');
-      } catch (error: any) {
-        console.error('Error al obtener la información del usuario:', error.response?.data || error.message);
-        setError('Error al obtener la información del usuario: ' + (error.response?.data?.error?.message || error.message));
-      }
-    };
 
-    if (typedSession?.jwt) {
-      fetchUserData();
+            const response = await axios.post('/api/user/get', {
+        jwt: typedSession?.jwt, 
+      });
+
+
+
+      const userData = response.data;
+
+
+
+
+      setEmail(userData.email || '');
+      setUsername(userData.username || '');
+      setDocumentId(userData.documentId || '');
+      setKey(userData.key || '');
+    } catch (error: any) {
+      console.error('Error al obtener la información del usuario:', error.response?.data || error.message);
+      setError('Error al obtener la información del usuario: ' + (error.response?.data?.error || error.message));
     }
-  }, [typedSession]);
+  };
+
+  if (typedSession?.jwt) {
+    fetchUserData();
+  }
+}, [typedSession]);
+
+
+
+
 
   const generateKey = () => {
     const newKey = Math.random().toString(36).substring(2, 15);
     setKey(newKey);
   };
 
-  const handleSave = async () => {
-    try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/users/${typedSession?.id}`,
-        {
-          username,
-          key,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${typedSession?.jwt}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
 
-      setError(null);
-      toast.success('Información actualizada con éxito'); // Show success toast
-    } catch (error: any) {
-      console.error('Error al actualizar la información:', error.response?.data || error.message);
-      setError('Error al actualizar la información: ' + (error.response?.data?.error?.message || error.message));
-      toast.error('Error al actualizar la información'); // Optional: Show error toast
-    }
-  };
+
+
+const handleSave = async () => {
+  try {
+    await axios.post('/api/user/update', {
+      username,
+      key,
+      jwt: typedSession?.jwt,
+    });
+
+    setError(null);
+    toast.success('Información actualizada con éxito');
+  } catch (error: any) {
+    console.error('Error al actualizar la información:', error.response?.data || error.message);
+    setError('Error al actualizar la información: ' + (error.response?.data?.error || error.message));
+    toast.error('Error al actualizar la información');
+  }
+};
+
+
+
+
 
   if (status === 'unauthenticated') {
     router.push('/login');
