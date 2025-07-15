@@ -3,7 +3,7 @@ import { ClipboardIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import Sidebard from '../../components/docs/index';
 
-const ENDPOINT_URL = 'https://wazilrest-wassap-core.xwk85y.easypanel.host/api/send-message/{ClientId}';
+const ENDPOINT_URL = 'https://api.wazilrest.com/api/send-message/{ClientId}';
 
 export default function Docs() {
   const [copied, setCopied] = useState(false);
