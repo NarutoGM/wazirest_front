@@ -29,7 +29,7 @@ export default async function handler(req, res) {
         }
       );
 
-      console.log('Webhook aaaaaaaaaaaaaaaaaaaaaa:', response.data);
+   //console.log('Webhook aaaaaaaaaaaaaaaaaaaaaa:', response.data);
 
 
 
