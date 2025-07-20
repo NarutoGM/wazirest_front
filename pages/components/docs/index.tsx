@@ -124,9 +124,9 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex">
+    <div className="flex bg-zinc-800">
       <div
-        className={`bg-zinc-900 text-white h-screen ${
+        className={` text-white h-screen ${
           isCollapsed ? 'w-20' : 'w-64'
         } transition-width duration-300 ease-in-out flex flex-col shadow-xl`}
       >
@@ -218,7 +218,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div
-          className={`p-4 flex items-center ${isCollapsed ? 'justify-center' : ''} border-t border-zinc-700 bg-zinc-900/50`}
+          className={`p-4 flex items-center ${isCollapsed ? 'justify-center' : ''} border-t border-zinc-700`}
         >
           <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
             {photourl ? (
@@ -245,7 +245,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="flex-grow bg-gray-50 dark:bg-zinc-800 h-screen overflow-auto">
+      <div className="flex-grow  bg-zinc-800 h-screen overflow-auto">
         {status === 'loading' && (
             <div className="fixed inset-0 flex items-center justify-center bg-transparent z-50">
             <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-500"></div>
@@ -254,7 +254,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
         { children}
 
 
-                <footer className="w-full flex flex-col items-center py-6 bg-transparent">
+                <footer className="w-full flex flex-col border-2 border-zinc-700 items-center py-6 ">
           <div className="flex items-center space-x-2 text-gray-300 text-sm">
             <span>© {new Date().getFullYear()} <span className="font-semibold text-gray-200">Wazilrest</span>.</span>
             <span>Todos los derechos reservados.</span>
@@ -276,7 +276,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <SessionProvider>
       <SidebarLayout>
         <Breadcrumb />
-        <div className="p-2">{children}</div>
+        <div className="p-2 bg-zinc-900">{children}</div>
       </SidebarLayout>
     </SessionProvider>
   );

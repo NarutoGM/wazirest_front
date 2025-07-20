@@ -335,7 +335,7 @@ function DashboardContent() {
   };
 
   return (
-    <div className="flex  ">
+    <div className="flex pb-22  ">
       <Toaster richColors position="top-right" />
 
       {/* Left Sidebar (Fixed Width) */}
@@ -384,12 +384,12 @@ function DashboardContent() {
       </div>
 
       {/* Right Content Area (Dynamic) */}
-      <div className="w-full bg-zinc-900 p-5 text-white rounded-bl-3xl rounded-tl-3xl">
+      <div className="w-full bg-zinc-800 p-5 text-white rounded-bl-3xl rounded-tl-3xl">
 
         {selectedWorkspace ? (
           selectedWorkspace.name === 'n8n_free_treal' ? (
 
-            <div>
+            <div className=' '>
               <div className="mb-6 flex flex-row items-center gap-8">
                 <div className="text-2xl flex items-center gap-2">
                   <span className="font-semibold">Nombre:</span>
@@ -433,7 +433,7 @@ function DashboardContent() {
           ) : (
             <div>
 
-              <div className="mb-6 flex flex-row items-center gap-8">
+              <div className="mb-6  flex flex-row items-center gap-8">
                 <div className="text-2xl flex items-center gap-2">
                   <span className="font-semibold">Nombre:</span>
                   <span>{selectedWorkspace.name || 'Sin nombre'}</span>
@@ -589,7 +589,7 @@ function DashboardContent() {
           )
 
         ) : (
-          <div>
+          <div className='h-150'>
             {loadingProducts ? (
               <p className="text-zinc-400">Cargando productos...</p>
             ) : error ? (
@@ -599,7 +599,7 @@ function DashboardContent() {
                 {products.map((product, index) => (
                   <div
                     key={index}
-                    className="bg-zinc-800 rounded-lg p-4 shadow-md flex flex-col h-full cursor-pointer hover:bg-zinc-700 transition"
+                    className="bg-zinc-900 rounded-lg p-4 shadow-md flex flex-col h-full cursor-pointer hover:bg-zinc-700 transition"
                     onClick={() => handleOpenModal(product)}
                   >
                     <div className="flex-1 flex items-center justify-center mb-2">
@@ -609,7 +609,7 @@ function DashboardContent() {
                         width={300}
                         height={200}
                         className="object-contain w-full h-40 rounded-md"
-                        style={{ maxHeight: '80px', width: '100%' }}
+                        style={{ maxHeight: '60px', width: '100%' }}
                       />
                     </div>
                     <h3 className="text-lg font-semibold text-center">{product.name}</h3>
@@ -632,7 +632,7 @@ function DashboardContent() {
           onClick={handleCloseModal}
         >
           <div
-            className="bg-zinc-800 p-6 rounded-lg shadow-lg w-full max-w-md"
+            className="bg-zinc-900 border border-zinc-700 p-6 rounded-lg shadow-lg w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-xl font-semibold mb-4 text-white">Crear Nueva Instancia</h2>

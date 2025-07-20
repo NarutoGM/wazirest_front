@@ -78,7 +78,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
     { name: 'Profile', icon: <UserIcon className="w-7 h-7 text-gray-200" />, path: '/profile', action: () => handleNavigation('/profile') },
     { name: 'Subscription', icon: <InboxIcon className="w-7 h-7 text-gray-200" />, path: '/subscription', action: () => handleNavigation('/subscription') },
     { name: 'Documentations', icon: <DocumentTextIcon className="w-7 h-7 text-gray-200" />, path: '/docs', action: () => handleNavigation('/docs') },
-    { name: 'Suite', icon: <BriefcaseIcon className="w-7 h-7 text-gray-200" />, path: '/suite', action: () => handleNavigation('/suite') },
+    { name: 'Services', icon: <BriefcaseIcon className="w-7 h-7 text-gray-200" />, path: '/services', action: () => handleNavigation('/services') },
     { name: 'Logout', icon: <ArrowLeftOnRectangleIcon className="w-7 h-7 text-gray-200" />, path: '/login', action: handleLogout },
   ];
   
@@ -98,7 +98,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex ">
       <div
-        className={`bg-zinc-900  text-white h-screen ${isCollapsed ? 'w-20' : 'w-64'
+        className={`bg-zinc-800  text-white h-screen ${isCollapsed ? 'w-20' : 'w-64'
           } transition-width duration-300 ease-in-out flex flex-col shadow-xl`}
       >
         <div className="p-4 flex items-center  border-zinc-700">
@@ -142,7 +142,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
                 key={index}
                 onClick={item.action}
                 className={`relative group flex ${isCollapsed ? 'flex-col items-center' : 'flex-row px-3 items-center'
-                  } mx-3 my-2 pt-3 pb-2 rounded-md cursor-pointer transition-all duration-200 ${isActive ? 'bg-emerald-600 shadow-md' : 'hover:bg-zinc-800'
+                  } mx-3 my-2 pt-3 pb-2 rounded-md cursor-pointer transition-all duration-200 ${isActive ? 'bg-emerald-600 shadow-md' : 'hover:bg-zinc-700'
                   } ${item.name === 'Logout' ? 'mt-auto hover:bg-red-900/75 text-white' : 'text-white'}`}
               >
                 <div className={`${isCollapsed ? 'mb-2' : ''} flex-shrink-0`}>
@@ -180,7 +180,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div
-          className={`p-4 flex items-center ${isCollapsed ? 'justify-center' : ''} border-t border-zinc-700 bg-zinc-900/50`}
+          className={`p-4 flex items-center ${isCollapsed ? 'justify-center' : ''} border-t border-zinc-700 bg-zinc-800`}
         >
           <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center overflow-hidden shadow-md">
             {photourl ? (
@@ -219,7 +219,7 @@ function SidebarLayout({ children }: { children: React.ReactNode }) {
 
 
 
-        <footer className="w-full flex flex-col items-center py-6 bg-transparent">
+        <footer className="w-full border-zinc-700 border-2 bg-zinc-800 flex flex-col items-center py-6 ">
           <div className="flex items-center space-x-2 text-gray-300 text-sm">
             <span>© {new Date().getFullYear()} <span className="font-semibold text-gray-200">Wazilrest</span>.</span>
             <span>Todos los derechos reservados.</span>
@@ -243,7 +243,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <SessionProvider>
       <SidebarLayout>
         <Breadcrumb />
-        <div className="p-2">{children}</div>
+        <div className="p-2 bg-zinc-900">{children}</div>
       </SidebarLayout>
     </SessionProvider>
   );

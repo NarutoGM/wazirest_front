@@ -4,7 +4,7 @@ import Sidebard from '../../components/docs/index';
 export default function Docs() {
   return (
     <Sidebard>
-      <div className="p-8 max-w-4xl mx-auto text-white">
+      <div className="p-8 pb-84 max-w-4xl mx-auto text-white">
 
 
 
@@ -18,12 +18,13 @@ export default function Docs() {
             <li>
               <strong>Paso 1:</strong> Tener una cuenta en{' '}
               <a
-                href="https://wazilrest-front.xwk85y.easypanel.host/register"
+                href="https://app.wazilrest.com/register"
                 className="text-emerald-500 hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                https://wazilrest-front.xwk85y.easypanel.host/register
+https://app.wazilrest.com/register
+
               </a>
             </li>
             <li>

@@ -302,7 +302,7 @@ function DashboardContent() {
 
 
   return (
-    <div className="">
+    <div className="pb-37">
       <Toaster richColors position="top-right" />
 
 
@@ -346,7 +346,7 @@ function DashboardContent() {
                 {sessions.map((session) => (
                   <div
                     key={session.documentId}
-                    className="bg-zinc-900/50 rounded-lg shadow-md shadow-emerald-800 p-3 border border-zinc-700"
+                    className="bg-zinc-800 rounded-lg shadow-md shadow-emerald-800 p-3 border border-zinc-700"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-4">

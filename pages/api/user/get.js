@@ -20,12 +20,27 @@ export default async function handler(req, res) {
 
 
     const response = await axios.post(webhook, { token: jwt });
+    const {
+      username,
+      email,
+      key,
+      name_plan: plan,
+      num_intances: num_instances,
+      cap_ram
+    } = response.data;
+
+    return res.status(200).json({
+      username,
+      email,
+      key,
+      plan,
+      num_instances,
+      cap_ram
+    });
 
 
 
 
-
-    return res.status(200).json(response.data);
 
 
 

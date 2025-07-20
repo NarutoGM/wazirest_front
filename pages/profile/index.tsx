@@ -95,7 +95,7 @@ const handleSave = async () => {
   }
 
   return (
-    <div className="p-5 max-w-md mx-auto">
+    <div className="p-5 pb-85 max-w-md mx-auto">
       <Toaster richColors /> {/* Add Toaster component */}
       <h1 className="text-2xl font-bold text-white mb-6">Actualizar Información del Usuario</h1>
 

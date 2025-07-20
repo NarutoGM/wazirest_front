@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export default function Helpme() {
   return (
-    <div className="bg-zinc-900 px-8 hidden xl:block py-9 rounded-lg shadow-lg max-w-3xl mx-auto mt-10">
+    <div className="bg-zinc-800 px-8 hidden xl:block py-9 rounded-lg shadow-lg max-w-3xl mx-auto mt-10">
       <h2 className="text-xl font-bold px-2 text-white mb-4 flex items-center gap-2">
         ¿Cómo escanear el QR de WhatsApp?
       </h2>

@@ -16,14 +16,14 @@ export default function Docs() {
 
   return (
     <Sidebard>
-      <div className="p-8 max-w-4xl mx-auto text-white">
+      <div className="p-8 pb-49 max-w-4xl mx-auto text-white">
         <section className="mt-8">
           <h2 className="text-3xl font-semibold mb-4">Enviar una imagen</h2>
           <p className="mb-6 text-zinc-300">
             Para enviar una imagen a través de la API, realiza una petición <strong>POST</strong> al siguiente endpoint:
           </p>
           <div className="relative mb-4">
-            <pre className="bg-zinc-900 rounded p-4 text-emerald-400 overflow-x-auto pr-14">
+            <pre className="bg-zinc-800 rounded p-4 text-emerald-400 overflow-x-auto pr-14">
               {`POST ${ENDPOINT_URL}`}
             </pre>
             <button
@@ -50,7 +50,7 @@ export default function Docs() {
           <p className="mb-2 text-zinc-300">
             <strong>Body (form-data):</strong>
           </p>
-          <pre className="bg-zinc-900 rounded p-4 text-emerald-400 overflow-x-auto mb-4">
+          <pre className="bg-zinc-800 rounded p-4 text-emerald-400 overflow-x-auto mb-4">
             {`number: 521XXXXXXXXXX
 message: Tu mensaje opcional
 file: [archivo de imagen] (opcional, tipo file)

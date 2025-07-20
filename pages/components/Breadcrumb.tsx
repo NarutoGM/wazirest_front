@@ -38,7 +38,7 @@ export default function Breadcrumb() {
 
 
     return (
-        <nav className="bg-zinc-800  shadow-zinc-800">
+        <nav className="bg-zinc-900  shadow-zinc-800">
             <div className="px-12 py-8 flex items-center border-b-2 border-zinc-700">
                 <div className="flex items-center justify-between w-full">
                     <ol className="flex items-center space-x-1 text-sm">
