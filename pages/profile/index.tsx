@@ -108,7 +108,7 @@ const handleSave = async () => {
             type="email"
             value={email}
             readOnly
-            className="p-2 w-full text-zinc-400 bg-zinc-900 border border-zinc-700 rounded-md focus:outline-none"
+            className="p-2 w-full text-zinc-400 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none"
           />
         </div>
 
@@ -119,7 +119,7 @@ const handleSave = async () => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Nuevo nombre de usuario"
-            className="p-2 w-full text-zinc-400 bg-zinc-900 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="p-2 w-full text-zinc-400 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
 
@@ -131,7 +131,7 @@ const handleSave = async () => {
                 type={isKeyVisible ? 'text' : 'password'}
                 value={key}
                 readOnly
-                className="p-2 w-full text-zinc-400 bg-zinc-900 border border-zinc-700 rounded-md focus:outline-none pr-10"
+                className="p-2 w-full text-zinc-400 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none pr-10"
               />
               <div className="absolute inset-y-0 right-2 flex items-center">
                 <button
