@@ -489,13 +489,16 @@ function DashboardContent() {
                 </div>
               </div>
 
-              <div className="bg-zinc-800 rounded-lg p-6 shadow-md mb-4">
-                <h3 className="text-lg font-semibold mb-2">Uso de Recursos</h3>
+              <div className=" rounded-lg p-6 mb-4">
+                <h3 className="text-lg  font-semibold mb-2">Uso de Recursos</h3>
                 <div className="mb-3">
 
                 </div>
                 <div className="mb-3">
-                  <span className="block text-zinc-400 mb-1">Memoria</span>
+
+
+                  <div className='bg-zinc-900 p-4 rounded-lg'>
+             <span className="block text-zinc-400 mb-1">Memoria</span>
                   <div className="w-full bg-zinc-700 rounded-full h-4">
                     <div
                       className="bg-emerald-400 h-4 rounded-full"
@@ -507,6 +510,9 @@ function DashboardContent() {
                       ? `${resourceUsage.memory.usage.toFixed(2)} MB / ${(resourceUsage.memory.usage / (resourceUsage.memory.percent / 100)).toFixed(2)} MB`
                       : 'Cargando...'}
                   </span>
+
+                  </div>
+     
 
 
 
