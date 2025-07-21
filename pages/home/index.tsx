@@ -207,7 +207,7 @@ useEffect(() => {
   const receivedChange = calculatePercentageChange(currentMonthData.message_received, previousMonthData.message_received || 0);
 
   return (
-    <div className="p-4 bg-zinc-900">
+    <div className="p-4 mb-30 bg-zinc-900">
       <Toaster richColors position="top-right" />
       {loading ? (
         <p className="text-zinc-400">Loading instances...</p>

@@ -6,15 +6,12 @@ type ResourcesProps = {
     users: string | undefined;
 };
 
-const WEBHOOK_URL =
-    'https://wazilrest-n8n.xwk85y.easypanel.host/webhook/7fa07500-c9f1-4255-aacb-214688503c1b';
-
 const Resources: React.FC<ResourcesProps> = ({ users }) => {
     const [response, setResponse] = useState<any[]>([]);
 
     useEffect(() => {
         if (!users) return;
-        axios.post(WEBHOOK_URL, { users })
+        axios.post('/api/resources/use', { users })
             .then(res => setResponse(res.data))
             .catch(() => setResponse([{ error: 'Error fetching data' }]));
     }, [users]);
