@@ -193,7 +193,7 @@ function DashboardContent() {
     try {
       await axios.post(
         '/api/suite',
-        { users: typedSession?.id, productName, fields },
+        { users: typedSession?.jwt, productName, fields },
         { headers: { 'Content-Type': 'application/json' } }
       );
       toast.success('Nueva instancia creada con éxito');
