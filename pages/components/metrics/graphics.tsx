@@ -28,14 +28,14 @@ ChartJS.register(
 );
 
 interface DashboardContentProps {
-  historyData?: HistoricalData[]; // Make optional to allow default
+  historyData?: HistoricalData[];
 }
 
 function DashboardContent({ historyData = [] }: DashboardContentProps) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    setLoading(false); // Update loading state when data is available
+    setLoading(false);
   }, [historyData]);
 
   const chartData = {
@@ -67,8 +67,7 @@ function DashboardContent({ historyData = [] }: DashboardContentProps) {
 
   const chartOptions: ChartOptions<'line'> = {
     responsive: true,
-    maintainAspectRatio: true,
-    aspectRatio: 2,
+    maintainAspectRatio: false, // Allow chart to fill container
     interaction: {
       mode: 'nearest',
       intersect: true,
@@ -76,6 +75,11 @@ function DashboardContent({ historyData = [] }: DashboardContentProps) {
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: {
+          font: {
+            size: window.innerWidth < 640 ? 10 : 12,
+          },
+        },
       },
       title: {
         display: true,
@@ -109,7 +113,7 @@ function DashboardContent({ historyData = [] }: DashboardContentProps) {
         color: '#ffff',
         font: {
           weight: 'bold' as const,
-          size: 12,
+          size: window.innerWidth < 640 ? 10 : 12,
         },
       },
     },
@@ -141,7 +145,7 @@ function DashboardContent({ historyData = [] }: DashboardContentProps) {
       {loading ? (
         <p className="text-zinc-400">Cargando...</p>
       ) : historyData.length > 0 ? (
-        <div className="relative bg-zinc-800 rounded-2xl p-5 w-full max-w-4xl mx-auto h-[500px] box-border overflow-x-auto">
+        <div className="relative bg-zinc-800 rounded-2xl p-3 sm:p-5 w-full max-w-full sm:max-w-4xl mx-auto h-auto min-h-[200px] sm:min-h-[300px] box-border">
           <Line data={chartData} options={chartOptions} />
         </div>
       ) : (

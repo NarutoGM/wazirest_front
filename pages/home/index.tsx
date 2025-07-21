@@ -7,6 +7,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import Graphics from '../../pages/components/metrics/graphics';
 import { SessionProvider,useSession } from 'next-auth/react';
 import Sidebard from '../components/dashboard/index';
+import Resources from '../../pages/components/metrics/resources';
 
 interface CustomSession {
   id?: string;
@@ -317,8 +318,17 @@ useEffect(() => {
             </div>
 
 
-           <Graphics historyData={historyData} />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 justify-center mx-auto" style={{ maxWidth: '1200px' }}>
+              <div>
+                <Resources users={typedSession?.jwt} />
+              </div>
+              <div className="md:col-span-1 xl:col-span-2">
+                <Graphics historyData={historyData} />
+              </div>
+            </div>
 
+
+     
         </>
       )}
     </div>
