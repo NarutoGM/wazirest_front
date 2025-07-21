@@ -33,10 +33,21 @@ interface DashboardContentProps {
 
 function DashboardContent({ historyData = [] }: DashboardContentProps) {
   const [loading, setLoading] = useState<boolean>(true);
+  const [fontSize, setFontSize] = useState<number>(12);
 
   useEffect(() => {
     setLoading(false);
   }, [historyData]);
+
+  useEffect(() => {
+    // Only run on client
+    const handleResize = () => {
+      setFontSize(window.innerWidth < 640 ? 10 : 12);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const chartData = {
     labels: historyData.map((data) => data.date),
@@ -77,7 +88,7 @@ function DashboardContent({ historyData = [] }: DashboardContentProps) {
         position: 'top' as const,
         labels: {
           font: {
-            size: window.innerWidth < 640 ? 10 : 12,
+            size: fontSize,
           },
         },
       },
@@ -113,7 +124,7 @@ function DashboardContent({ historyData = [] }: DashboardContentProps) {
         color: '#ffff',
         font: {
           weight: 'bold' as const,
-          size: window.innerWidth < 640 ? 10 : 12,
+          size: fontSize,
         },
       },
     },
