@@ -74,7 +74,7 @@ export default function Breadcrumb() {
                             );
                         })}
                     </ol>
-                    {showButton && (
+                    {/* {showButton && (
                         <button
                             onClick={toggleSidebar}
                             className="mb-4 bg-red-600 text-white px-4 py-2 mr-18 rounded font-bold hover:bg-red-700 transition"
@@ -87,7 +87,7 @@ export default function Breadcrumb() {
                                         ? '👑 Buy Suite 👑'
                                         : ''}
                         </button>
-                    )}
+                    )} */}
 
                 </div>
             </div>
